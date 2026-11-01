@@ -99,6 +99,7 @@ SDL_Scancode toSDLScancode(Key key) {
         case Key::LeftGui: return SDL_SCANCODE_LGUI;
         case Key::RightGui: return SDL_SCANCODE_RGUI;
 }
+}
 
 void initializeInput() { // call after SDL been init in platform.cpp
     keystate = SDL_GetKeyboardState(nullptr);
