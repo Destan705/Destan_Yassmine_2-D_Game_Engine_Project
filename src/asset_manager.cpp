@@ -94,4 +94,9 @@ std::pair<int, int> AssetManager::getOriginalDimensions(textureHandle handle) co
     }
     // Call Renderer function to get dimensions
     // Return said dimensions as a pair of integers
+
+    std::pair<int, int> dimensions = renderer.getTextureDimensions(handle);
+    
+    return dimensions;
+
 }
