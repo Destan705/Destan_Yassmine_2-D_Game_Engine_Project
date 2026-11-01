@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, feature/platform-integration]
+    branches: [main, feature/platform-integration, phase2]
 
 jobs:
   build-and-test:

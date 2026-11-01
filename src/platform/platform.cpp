@@ -1,11 +1,12 @@
+#include "platform.h"
 #include "logger.h"
-#include "renderer.h"
 #include "render_api.h"
+#include "renderer.h"
 #include <SDL3/SDL.h>
+#include <array>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
-#include <array>
 
 SDL_Window* window = nullptr;
 std::unique_ptr<Renderer> renderer = nullptr;
@@ -15,7 +16,7 @@ bool initializePlatform() {
     // Initialize SDL Subsystems
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
         logMessage(logger_level::Error,
-                "SDL could not initialize! SDL_Error: " + std::string(SDL_GetError()));
+                   "SDL could not initialize! SDL_Error: " + std::string(SDL_GetError()));
         return false;
     }
     logMessage(logger_level::Info, "SDL3 initialized successfully!");
@@ -25,7 +26,7 @@ bool initializePlatform() {
 
     if (window == nullptr) {
         logMessage(logger_level::Error,
-                "Window could not be created! SDL_Error: " + std::string(SDL_GetError()));
+                   "Window could not be created! SDL_Error: " + std::string(SDL_GetError()));
         SDL_Quit();
         return false;
     }
@@ -39,11 +40,11 @@ bool initializePlatform() {
 
         if (basePath == nullptr) {
             throw std::runtime_error(std::string("Could not locate assets! SDL_Error: ") +
-                                    SDL_GetError());
+                                     SDL_GetError());
         }
         const std::string texturePath = std::string(basePath) + "assets/test.bmp";
 
-        currentTexture =renderer->LoadTexture(texturePath.c_str());
+        currentTexture = renderer->LoadTexture(texturePath.c_str());
 
     } catch (const std::runtime_error& e) {
         logMessage(logger_level::Error, e.what());
@@ -57,7 +58,6 @@ bool initializePlatform() {
     return true;
 }
 
-
 void beginFrame() {
     if (renderer == nullptr) {
         logMessage(logger_level::Warning, "Renderer is not initialized!");
@@ -65,19 +65,18 @@ void beginFrame() {
     }
     // Clear the screen with a black color
     renderer->ClearScreen(Color{0, 0, 0, 255});
-
 }
 
-void drawFilledRect(Color rectColor, Bounds rectBounds){
+void drawFilledRect(Color rectColor, Bounds rectBounds) {
     // Draw a rectangle in the center of the screen
     renderer->DrawFilledRect(rectColor, rectBounds);
 }
 
-void drawTexture(){
+void drawTexture() {
     renderer->DrawTexture(currentTexture, Bounds{100.0f, 100.0f, 200.0f, 200.0f});
 }
 
-void presentFrame(){
+void presentFrame() {
     // Present the rendered frame on the screen
     renderer->Present();
 }
@@ -95,14 +94,24 @@ void shutdownPlatform() {
     SDL_Quit();
 }
 
-Renderer& getRenderer() {
+void renderPlatform(Scene& scene) {
+
     if (renderer == nullptr) {
-        throw std::runtime_error("Renderer is not initialized");
+        logMessage(logger_level::Warning, "Renderer is not initialized!");
+        return;
     }
 
-    return *renderer;
+    renderer->ClearScreen(Color{255, 255, 255, 255});
+    scene.render(*renderer);
+    renderer->Present();
 }
 
-textureHandle getDefaultTexture() {
-    return currentTexture;
+textureHandle loadPlatformTexture(const char* filePath) {
+    if (renderer == nullptr) {
+        logMessage(logger_level::Warning, "Renderer is not initialized!");
+        return 0;
+    }
+
+    textureHandle newTexture = renderer->LoadTexture(filePath);
+    return newTexture;
 }

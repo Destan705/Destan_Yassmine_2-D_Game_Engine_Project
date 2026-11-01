@@ -1,17 +1,15 @@
 #include "renderer.h"
 #include "scene.h"
 
-
-#include <gtest/gtest.h>
-#include <memory>
-#include <stdexcept>
-#include <type_traits>
 #include <filesystem>
 #include <fstream>
+#include <gtest/gtest.h>
+#include <memory>
 #include <random>
+#include <stdexcept>
 #include <string>
 #include <system_error>
-
+#include <type_traits>
 
 // A renderer owns an SDL resource, so copying it must stay disabled.
 static_assert(!std::is_copy_constructible_v<Renderer>);
@@ -153,7 +151,6 @@ TEST_F(RendererTest, LaterRectangleOverwritesOverlapAndPreservesOtherPixels) {
     }
 }
 
-
 class TextureTest : public RendererTest {
   protected:
     std::filesystem::path temporaryDirectory;
@@ -170,8 +167,7 @@ class TextureTest : public RendererTest {
 
         for (int attempt = 0; attempt < 100; ++attempt) {
             const auto candidate =
-                temporaryRoot /
-                ("engine-texture-test-" + std::to_string(random()));
+                temporaryRoot / ("engine-texture-test-" + std::to_string(random()));
 
             if (std::filesystem::create_directory(candidate)) {
                 temporaryDirectory = candidate;
@@ -179,8 +175,7 @@ class TextureTest : public RendererTest {
             }
         }
 
-        ASSERT_FALSE(temporaryDirectory.empty())
-            << "Could not create a temporary test directory";
+        ASSERT_FALSE(temporaryDirectory.empty()) << "Could not create a temporary test directory";
     }
 
     void TearDown() override {
@@ -200,21 +195,14 @@ class TextureTest : public RendererTest {
     }
 
     void CreateBmp(const std::string& path, const Color& color) {
-        SurfacePtr surface(
-            SDL_CreateSurface(2, 2, SDL_PIXELFORMAT_RGBA32),
-            SDL_DestroySurface
-        );
+        SurfacePtr surface(SDL_CreateSurface(2, 2, SDL_PIXELFORMAT_RGBA32), SDL_DestroySurface);
         ASSERT_NE(surface, nullptr) << SDL_GetError();
 
-        const Uint32 pixel = SDL_MapSurfaceRGB(
-            surface.get(), color.red, color.green, color.blue
-        );
+        const Uint32 pixel = SDL_MapSurfaceRGB(surface.get(), color.red, color.green, color.blue);
 
-        ASSERT_TRUE(SDL_FillSurfaceRect(surface.get(), nullptr, pixel))
-            << SDL_GetError();
+        ASSERT_TRUE(SDL_FillSurfaceRect(surface.get(), nullptr, pixel)) << SDL_GetError();
 
-        ASSERT_TRUE(SDL_SaveBMP(surface.get(), path.c_str()))
-            << SDL_GetError();
+        ASSERT_TRUE(SDL_SaveBMP(surface.get(), path.c_str())) << SDL_GetError();
     }
 
     void ExpectSolidScreen(const Color& expected) {
@@ -236,10 +224,9 @@ TEST_F(TextureTest, LoadsValidBmpAndDrawsAtRequestedPositionAndSize) {
 
     ASSERT_NO_FATAL_FAILURE(CreateBmp(path, textureColor));
 
-    
     Renderer renderer(window);
-    textureHandle currentTexture=0;
-    ASSERT_NO_THROW(currentTexture=renderer.LoadTexture(path.c_str()));
+    textureHandle currentTexture = 0;
+    ASSERT_NO_THROW(currentTexture = renderer.LoadTexture(path.c_str()));
 
     renderer.ClearScreen(background);
     renderer.DrawTexture(currentTexture, Bounds{7.0f, 13.0f, 19.0f, 11.0f});
@@ -250,13 +237,9 @@ TEST_F(TextureTest, LoadsValidBmpAndDrawsAtRequestedPositionAndSize) {
     // Check the texture's area and the untouched background.
     for (int y = 0; y < pixels->h; ++y) {
         for (int x = 0; x < pixels->w; ++x) {
-            const bool inside =
-                x >= 7 && x < 26 && y >= 13 && y < 24;
+            const bool inside = x >= 7 && x < 26 && y >= 13 && y < 24;
 
-            ExpectPixel(
-                pixels.get(), x, y,
-                inside ? textureColor : background
-            );
+            ExpectPixel(pixels.get(), x, y, inside ? textureColor : background);
         }
     }
 }
@@ -265,10 +248,7 @@ TEST_F(TextureTest, MissingFileThrowsRuntimeError) {
     Renderer renderer(window);
     const std::string path = FilePath("missing.bmp");
 
-    EXPECT_THROW(
-        renderer.LoadTexture(path.c_str()),
-        std::runtime_error
-    );
+    EXPECT_THROW(renderer.LoadTexture(path.c_str()), std::runtime_error);
 }
 
 TEST_F(TextureTest, InvalidBmpThrowsRuntimeError) {
@@ -286,10 +266,7 @@ TEST_F(TextureTest, InvalidBmpThrowsRuntimeError) {
     Renderer renderer(window);
     const std::string texturePath = FilePath("invalid.bmp");
 
-    EXPECT_THROW(
-        renderer.LoadTexture(texturePath.c_str()),
-        std::runtime_error
-    );
+    EXPECT_THROW(renderer.LoadTexture(texturePath.c_str()), std::runtime_error);
 }
 
 TEST_F(TextureTest, DrawingWithoutTextureLeavesScreenUnchanged) {
@@ -297,13 +274,10 @@ TEST_F(TextureTest, DrawingWithoutTextureLeavesScreenUnchanged) {
     const Color background{17, 83, 149, 255};
     renderer.ClearScreen(background);
 
-    EXPECT_NO_THROW(
-        renderer.DrawTexture(0,Bounds{7.0f, 13.0f, 19.0f, 11.0f})
-    );
+    EXPECT_NO_THROW(renderer.DrawTexture(0, Bounds{7.0f, 13.0f, 19.0f, 11.0f}));
 
     ExpectSolidScreen(background);
 }
-
 
 TEST_F(TextureTest, LoadedTexturesReceiveDistinctHandles) {
     const std::string redPath = FilePath("red.bmp");
@@ -357,9 +331,7 @@ TEST_F(TextureTest, InvalidHandleDoesNotChangeScreen) {
     const Color background{25, 50, 75, 255};
     renderer.ClearScreen(background);
 
-    EXPECT_NO_THROW(
-        renderer.DrawTexture(9999u, Bounds{0, 0, 64, 64})
-    );
+    EXPECT_NO_THROW(renderer.DrawTexture(9999u, Bounds{0, 0, 64, 64}));
 
     ExpectSolidScreen(background);
 }

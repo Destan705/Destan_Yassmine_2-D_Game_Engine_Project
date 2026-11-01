@@ -3,26 +3,21 @@
 class Entity;
 class Renderer;
 
-class Component{ 
+class Component {
 
-    public:
-        virtual ~Component();
+  public:
+    virtual ~Component();
 
-        virtual void update(float deltaTime);
+    virtual void update(float deltaTime);
 
-        virtual void render(Renderer& renderer);
+    virtual void render(Renderer& renderer);
 
-        Entity* getOwner() const;
+    Entity* getOwner() const;
 
+  private:
+    void setOwner(Entity& entity);
 
-    private:
-        void setOwner(Entity& entity);
-        
-        Entity* owner = nullptr;
+    Entity* owner = nullptr;
 
-        
     friend class Entity;
 };
-
-
-
