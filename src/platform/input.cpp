@@ -2,13 +2,10 @@
 #include <SDL3/SDL.h>
 #include <array>
 
-
-
 SDL_Event event;
 const bool* keystate;
 std::array<bool, SDL_SCANCODE_COUNT> pressedThisFrame{};
 std::array<bool, SDL_SCANCODE_COUNT> releasedThisFrame{};
-
 
 SDL_Scancode toSDLScancode(Key key) {
     switch (key) {
@@ -101,10 +98,8 @@ SDL_Scancode toSDLScancode(Key key) {
         case Key::RightAlt: return SDL_SCANCODE_RALT;
         case Key::LeftGui: return SDL_SCANCODE_LGUI;
         case Key::RightGui: return SDL_SCANCODE_RGUI;
-    }
-    return SDL_SCANCODE_UNKNOWN;
 }
-
+}
 
 void initializeInput() { // call after SDL been init in platform.cpp
     keystate = SDL_GetKeyboardState(nullptr);
@@ -123,7 +118,7 @@ bool processPlatformEvents() {
             }
         } else if (event.type == SDL_EVENT_KEY_UP) {
             releasedThisFrame[event.key.scancode] = true;
-        } 
+        }
     }
     return true;
 }

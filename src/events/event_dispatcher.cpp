@@ -1,18 +1,17 @@
 #include "event_dispatcher.h"
 #include <algorithm>
 
-EventDispatcher::ListenerId EventDispatcher::subscribe(Handler handler){
+EventDispatcher::ListenerId EventDispatcher::subscribe(Handler handler) {
     auto subscriptionId = idCounter;
     idCounter++;
     subscriptions.push_back({subscriptionId, std::move(handler)});
     return subscriptionId;
 }
 
-void EventDispatcher::unsubscribe(ListenerId listenerId){
-    auto iterator = std::find_if(subscriptions.begin(), subscriptions.end(),
-                                [listenerId](const auto& entry) {
-                                    return entry.first == listenerId;
-                                });
+void EventDispatcher::unsubscribe(ListenerId listenerId) {
+    auto iterator =
+        std::find_if(subscriptions.begin(), subscriptions.end(),
+                     [listenerId](const auto& entry) { return entry.first == listenerId; });
 
     if (iterator != subscriptions.end()) {
         subscriptions.erase(iterator);

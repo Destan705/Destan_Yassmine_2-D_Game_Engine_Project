@@ -1,21 +1,21 @@
-#include "transform.h"
 #include "sprite.h"
 #include "entity.h"
 #include "renderer.h"
+#include "transform.h"
 
-Sprite::Sprite(textureHandle handle){
+Sprite::Sprite(textureHandle handle) {
     currentTexture = handle;
 }
 
-void Sprite::render(Renderer& renderer){
+void Sprite::render(Renderer& renderer) {
 
-    Entity* owner= getOwner();
-    if(owner==nullptr){
+    Entity* owner = getOwner();
+    if (owner == nullptr) {
         return;
     }
-    
+
     Transform* transform = owner->getComponent<Transform>();
-    if(transform==nullptr){
+    if (transform == nullptr) {
         return;
     }
 
