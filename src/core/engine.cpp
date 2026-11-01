@@ -19,9 +19,7 @@ using namespace std;
 
 
 void renderEngineFrame(SceneManager& sceneManager) {
-    beginFrame();
-    sceneManager.getActiveScene().render(getRenderer());
-    presentFrame();
+    renderPlatform(sceneManager.getActiveScene());
 }
 
 
@@ -47,7 +45,7 @@ void engine() {
 
         Entity& sceneEntity = sceneManager.getActiveScene().createEntity();
         Transform& transformComponent = sceneEntity.addComponent<Transform>();
-        textureHandle handle = getDefaultTexture();
+        textureHandle handle = loadPlatformTexture("assets/test.bmp");
         sceneEntity.addComponent<Sprite>(handle);
 
         transformComponent.x = 100.0f;

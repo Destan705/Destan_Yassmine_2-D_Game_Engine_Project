@@ -1,11 +1,11 @@
 #pragma once
 
 #include "rendertypes.h"
+#include "scene.h"
 
 class Renderer;
 
 bool initializePlatform();
 void shutdownPlatform();
-
-Renderer& getRenderer();
-textureHandle getDefaultTexture();
+void renderPlatform(Scene& scene);
+textureHandle loadPlatformTexture(const char* filePath);

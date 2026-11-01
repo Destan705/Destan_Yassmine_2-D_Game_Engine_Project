@@ -1,6 +1,7 @@
 #include "logger.h"
 #include "renderer.h"
 #include "render_api.h"
+#include "platform.h"
 #include <SDL3/SDL.h>
 #include <iostream>
 #include <memory>
@@ -95,14 +96,24 @@ void shutdownPlatform() {
     SDL_Quit();
 }
 
-Renderer& getRenderer() {
-    if (renderer == nullptr) {
-        throw std::runtime_error("Renderer is not initialized");
+void renderPlatform(Scene& scene){
+
+    if(renderer==nullptr){
+        logMessage(logger_level::Warning,"Renderer is not initialized!");
+        return;
     }
 
-    return *renderer;
+    renderer->ClearScreen(Color{255,255,255,255});
+    scene.render(*renderer);
+    renderer->Present();
 }
 
-textureHandle getDefaultTexture() {
-    return currentTexture;
+textureHandle loadPlatformTexture(const char* filePath){
+    if(renderer==nullptr){
+        logMessage(logger_level::Warning,"Renderer is not initialized!");
+        return 0;
+    }
+
+    textureHandle newTexture=renderer->LoadTexture(filePath);
+    return newTexture;
 }
