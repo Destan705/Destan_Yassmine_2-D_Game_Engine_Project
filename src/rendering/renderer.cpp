@@ -89,7 +89,7 @@ void Renderer::DrawTexture(textureHandle textureHandle, const Bounds& bounds) {
         logMessage(logger_level::Warning, "Invalid texture handle");
         hasWarned= true;
         }
-         return;
+        return;
     }
     SDL_Texture* texture = textures[textureHandle];
     if (texture == nullptr) {
