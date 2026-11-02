@@ -15,11 +15,16 @@ add_executable(game_engine
     ecs/entity.cpp
     ecs/sprite.cpp
     ecs/animationComponent.cpp
+    ecs/colliderComponent.cpp
 
     events/event_dispatcher.cpp
 
     scene/scene.cpp
     scene/scene_manager.cpp
+
+    colliderSystem.cpp
+
+    asset_manager.cpp
 )
 
 target_link_libraries(game_engine PRIVATE SDL3::SDL3)

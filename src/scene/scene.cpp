@@ -26,3 +26,7 @@ void Scene::render(Renderer& renderer) {
         entity->render(renderer);
     }
 }
+
+const std::vector<std::unique_ptr<Entity>>& Scene::getEntities() {
+    return entities;
+}

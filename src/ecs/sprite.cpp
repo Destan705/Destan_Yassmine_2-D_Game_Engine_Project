@@ -20,7 +20,7 @@ void Sprite::render(Renderer& renderer){
     }
 
     Bounds bounds{transform->x, transform->y, transform->width, transform->height};
-    renderer.DrawTexture(currentTexture, bounds, src);
+    renderer.DrawTexture(currentTexture, bounds);
 }
 
 void Sprite::sourceSet(std::optional<Bounds> source){

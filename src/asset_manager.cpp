@@ -87,11 +87,18 @@ std::string AssetManager::getPath(textureHandle handle) const {
     return cacheHit->second;
 }
 
+
+// Call Renderer function to get dimensions
+// Return said dimensions as a pair of integers
 std::pair<int, int> AssetManager::getOriginalDimensions(textureHandle handle) const {
     auto cacheHit = handleToPath.find(handle);
     if (cacheHit == handleToPath.end()){
         throw std::out_of_range("No texture path associated with the passed handle");
     }
-    // Call Renderer function to get dimensions
-    // Return said dimensions as a pair of integers
+
+
+    std::pair<int, int> dimensions = renderer.getTextureDimensions(handle);
+    
+    return dimensions;
+
 }
