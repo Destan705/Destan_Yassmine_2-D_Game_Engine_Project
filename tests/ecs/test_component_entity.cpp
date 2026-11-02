@@ -1,12 +1,10 @@
+#include "component.h"
+#include "entity.h"
 #include <gtest/gtest.h>
 #include <stdexcept>
-#include "entity.h"
-#include "component.h"
-
 
 class FakeComponent : public Component {};
 class FakeComponent2 : public Component {};
-
 
 // ---------- Entity / Component ----------
 TEST(EntityTest, AddComponentReturnsTheComponent) {
@@ -24,11 +22,10 @@ TEST(EntityTest, AddingDuplicateComponentThrows) {
 TEST(EntityTest, GetMissingComponentReturnsNullptr) {
     Entity entity(1);
     EXPECT_EQ(nullptr, entity.getComponent<FakeComponent>());
-    
 }
 
 class UpdateTracker : public Component {
-public:
+  public:
     bool updated = false;
     void update(float dt) override {
         updated = true;

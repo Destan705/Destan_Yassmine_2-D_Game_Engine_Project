@@ -35,7 +35,7 @@ void updatePosition(std::array<float, 2>& position, float delta_time, Key left, 
         std::cout << objectName << " down\n";
     }
 }
-}
+} // namespace
 void initializeGame() {
     catPosition = catStartPosition;
     chefPosition = chefStartPosition;

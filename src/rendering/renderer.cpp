@@ -83,7 +83,8 @@ textureHandle Renderer::LoadTexture(const char* filePath) {
     return static_cast<textureHandle>(textures.size()-1);
 }
 
-void Renderer::DrawTexture(textureHandle textureHandle, const Bounds& bounds) {
+void Renderer::DrawTexture(textureHandle textureHandle, const Bounds& bounds, std::optional<Bounds> src) {
+
     if(textureHandle == 0 || textureHandle >= textures.size()){
         if(hasWarned != true){
         logMessage(logger_level::Warning, "Invalid texture handle");
@@ -96,13 +97,34 @@ void Renderer::DrawTexture(textureHandle textureHandle, const Bounds& bounds) {
         return;
     }
 
+    SDL_FRect destRect;
+    SDL_FRect srcRect;
 
-    SDL_FRect rect;
+    destRect.x = bounds.x;
+    destRect.y = bounds.y;
+    destRect.w = bounds.w;
+    destRect.h = bounds.h;
 
-    rect.x = bounds.x;
-    rect.y = bounds.y;
-    rect.w = bounds.w;
-    rect.h = bounds.h;
+    if(src.has_value()){
+        float texW, texH;
+        SDL_GetTextureSize(texture, &texW, &texH);
 
-    SDL_RenderTexture(renderer, texture, nullptr, &rect);
+        srcRect.x=src->x;
+        srcRect.y=src->y;
+        srcRect.w=src->w;
+        srcRect.h=src->h;
+
+        if(srcRect.x>=0 && srcRect.y>=0 && srcRect.w>0 && srcRect.h>0 && texW >= (srcRect.x+srcRect.w) && texH >= (srcRect.y+srcRect.h) ){
+       SDL_RenderTexture(renderer, texture, &srcRect, &destRect);
+        }else{
+        logMessage(logger_level::Warning, "Invalid source rectangle");
+        return;
+        }
+        
+    }else{
+        SDL_RenderTexture(renderer, texture, nullptr, &destRect); 
+        return;
+    }
+
+    
 }

@@ -2,6 +2,7 @@
 #include <SDL3/SDL.h>
 #include "rendertypes.h"
 #include <vector> 
+#include <optional>
 
 
 
@@ -32,11 +33,13 @@ class Renderer{
     textureHandle LoadTexture(const char* filePath);
 
     //Draws the loaded texture at the given position and size.
-    void DrawTexture(textureHandle textureHandle, const Bounds& bounds);
+    void DrawTexture(textureHandle textureHandle, const Bounds& bound, std::optional<Bounds> src= std::nullopt);
     
 
     private:
     SDL_Renderer* renderer=nullptr;
     bool hasWarned = false; // flag to track if the warning has been logged
-      std::vector <SDL_Texture*> textures; // the array of textures that the renderer can use to draw
-};
+    std::vector <SDL_Texture*> textures; // the array of textures that the renderer can use to draw
+
+
+    };

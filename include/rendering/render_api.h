@@ -1,6 +1,5 @@
 #include "rendertypes.h"
 
-
 // Start a frame by clearing the screen.
 void beginFrame();
 

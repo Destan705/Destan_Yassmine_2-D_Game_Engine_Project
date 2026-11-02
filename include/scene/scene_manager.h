@@ -1,11 +1,11 @@
-#pragma once 
+#pragma once
 #include "event_dispatcher.h"
 #include "scene.h"
 #include <memory>
 
-class SceneManager{
+class SceneManager {
 
-public:
+  public:
     explicit SceneManager(EventDispatcher& dispatcher);
 
     void setActiveScene(std::unique_ptr<Scene> scene);
@@ -14,7 +14,7 @@ public:
 
     void update(float dt);
 
-private:
+  private:
     std::unique_ptr<Scene> currentScene;
 
     EventDispatcher& eventDispatcher;

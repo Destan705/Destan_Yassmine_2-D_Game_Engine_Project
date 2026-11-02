@@ -19,9 +19,9 @@ namespace {
 
 // Records when an Entity is updated or rendered.
 class TrackingComponent : public Component {
-public:
-    TrackingComponent(std::vector<int>& calls, int id)
-        : calls(calls), id(id) {}
+  public:
+    TrackingComponent(std::vector<int>& calls, int id) : calls(calls), id(id) {
+    }
 
     void update(float dt) override {
         calls.push_back(id);
@@ -34,22 +34,22 @@ public:
 
     float lastDeltaTime = 0.0f;
 
-private:
+  private:
     std::vector<int>& calls;
     int id;
 };
 
 // Lets tests detect when an Entity's components are destroyed.
 class DestructionTracker : public Component {
-public:
-    explicit DestructionTracker(bool& destroyed)
-        : destroyed(destroyed) {}
+  public:
+    explicit DestructionTracker(bool& destroyed) : destroyed(destroyed) {
+    }
 
     ~DestructionTracker() override {
         destroyed = true;
     }
 
-private:
+  private:
     bool& destroyed;
 };
 
@@ -112,8 +112,7 @@ TEST(SceneTest, PassesDeltaTimeToComponents) {
     Scene scene("Level1");
     std::vector<int> calls;
 
-    auto& component =
-        scene.createEntity().addComponent<TrackingComponent>(calls, 1);
+    auto& component = scene.createEntity().addComponent<TrackingComponent>(calls, 1);
 
     scene.update(0.25f);
 
@@ -219,10 +218,7 @@ TEST(SceneManagerTest, RejectsNullScene) {
     EventDispatcher dispatcher;
     SceneManager manager(dispatcher);
 
-    EXPECT_THROW(
-        manager.setActiveScene(nullptr),
-        std::invalid_argument
-    );
+    EXPECT_THROW(manager.setActiveScene(nullptr), std::invalid_argument);
 }
 
 TEST(SceneManagerTest, NullSceneDoesNotReplaceExistingScene) {
@@ -231,10 +227,7 @@ TEST(SceneManagerTest, NullSceneDoesNotReplaceExistingScene) {
 
     manager.setActiveScene(std::make_unique<Scene>("Level1"));
 
-    EXPECT_THROW(
-        manager.setActiveScene(nullptr),
-        std::invalid_argument
-    );
+    EXPECT_THROW(manager.setActiveScene(nullptr), std::invalid_argument);
 
     EXPECT_EQ(manager.getActiveScene().getSceneName(), "Level1");
 }
@@ -245,9 +238,7 @@ TEST(SceneManagerTest, FirstSceneDispatchesCorrectEvent) {
 
     std::vector<SceneChangedEvent> events;
 
-    dispatcher.subscribe([&](const SceneChangedEvent& event) {
-        events.push_back(event);
-    });
+    dispatcher.subscribe([&](const SceneChangedEvent& event) { events.push_back(event); });
 
     manager.setActiveScene(std::make_unique<Scene>("Level1"));
 
@@ -262,9 +253,7 @@ TEST(SceneManagerTest, ReplacementDispatchesCorrectEvent) {
 
     std::vector<SceneChangedEvent> events;
 
-    dispatcher.subscribe([&](const SceneChangedEvent& event) {
-        events.push_back(event);
-    });
+    dispatcher.subscribe([&](const SceneChangedEvent& event) { events.push_back(event); });
 
     manager.setActiveScene(std::make_unique<Scene>("Level1"));
     manager.setActiveScene(std::make_unique<Scene>("Level2"));
@@ -281,9 +270,7 @@ TEST(SceneManagerTest, SceneChangeEventIsSynchronous) {
 
     bool received = false;
 
-    dispatcher.subscribe([&](const SceneChangedEvent&) {
-        received = true;
-    });
+    dispatcher.subscribe([&](const SceneChangedEvent&) { received = true; });
 
     manager.setActiveScene(std::make_unique<Scene>("Level1"));
 
@@ -302,9 +289,7 @@ TEST(SceneManagerTest, OldSceneDestroyedBeforeEvent) {
 
     manager.setActiveScene(std::move(first));
 
-    dispatcher.subscribe([&](const SceneChangedEvent&) {
-        destroyedWhenNotified = destroyed;
-    });
+    dispatcher.subscribe([&](const SceneChangedEvent&) { destroyedWhenNotified = destroyed; });
 
     manager.setActiveScene(std::make_unique<Scene>("Level2"));
 
@@ -317,9 +302,8 @@ TEST(SceneManagerTest, NewSceneActiveDuringEvent) {
 
     std::string observedName;
 
-    dispatcher.subscribe([&](const SceneChangedEvent&) {
-        observedName = manager.getActiveScene().getSceneName();
-    });
+    dispatcher.subscribe(
+        [&](const SceneChangedEvent&) { observedName = manager.getActiveScene().getSceneName(); });
 
     manager.setActiveScene(std::make_unique<Scene>("Level2"));
 
@@ -332,9 +316,7 @@ TEST(SceneManagerTest, EventNamesRemainValidAfterReplacement) {
 
     std::vector<SceneChangedEvent> events;
 
-    dispatcher.subscribe([&](const SceneChangedEvent& event) {
-        events.push_back(event);
-    });
+    dispatcher.subscribe([&](const SceneChangedEvent& event) { events.push_back(event); });
 
     manager.setActiveScene(std::make_unique<Scene>("Level1"));
     manager.setActiveScene(std::make_unique<Scene>("Level2"));
@@ -351,16 +333,11 @@ TEST(SceneManagerTest, NullSceneDoesNotDispatchEvent) {
 
     int eventCount = 0;
 
-    dispatcher.subscribe([&](const SceneChangedEvent&) {
-        ++eventCount;
-    });
+    dispatcher.subscribe([&](const SceneChangedEvent&) { ++eventCount; });
 
     manager.setActiveScene(std::make_unique<Scene>("Level1"));
 
-    EXPECT_THROW(
-        manager.setActiveScene(nullptr),
-        std::invalid_argument
-    );
+    EXPECT_THROW(manager.setActiveScene(nullptr), std::invalid_argument);
 
     EXPECT_EQ(eventCount, 1);
 }
@@ -389,8 +366,7 @@ TEST(SceneTest, RendersEntitiesInInsertionOrder) {
 
     ASSERT_TRUE(SDL_Init(SDL_INIT_VIDEO));
 
-    SDL_Window* window =
-        SDL_CreateWindow("Test", 320, 240, SDL_WINDOW_HIDDEN);
+    SDL_Window* window = SDL_CreateWindow("Test", 320, 240, SDL_WINDOW_HIDDEN);
 
     ASSERT_NE(window, nullptr);
 

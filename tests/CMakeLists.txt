@@ -29,6 +29,7 @@ add_executable(engine_tests
     ../src/ecs/component.cpp
     ../src/ecs/entity.cpp
     ../src/ecs/sprite.cpp
+    ../src/ecs/animationComponent.cpp
 
     ../src/events/event_dispatcher.cpp
 

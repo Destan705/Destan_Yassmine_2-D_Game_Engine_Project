@@ -6,9 +6,9 @@
 
 #include <gtest/gtest.h>
 
+#include <SDL3/SDL.h>
 #include <cstdint>
 #include <stdexcept>
-#include <SDL3/SDL.h>
 
 // ============================================================
 // Transform tests
@@ -135,8 +135,7 @@ TEST(SpriteTest, MissingTransformSafelySkipsDrawing) {
 
     ASSERT_TRUE(SDL_Init(SDL_INIT_VIDEO));
 
-    SDL_Window* window =
-        SDL_CreateWindow("Sprite Test", 320, 240, SDL_WINDOW_HIDDEN);
+    SDL_Window* window = SDL_CreateWindow("Sprite Test", 320, 240, SDL_WINDOW_HIDDEN);
 
     ASSERT_NE(window, nullptr);
 

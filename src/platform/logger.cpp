@@ -1,13 +1,17 @@
 #include "logger.h"
-#include <string>
 #include <iostream>
+#include <string>
 
 std::string loggerLevelToString(logger_level level) {
     switch (level) {
-        case logger_level::Info: return "INFO";
-        case logger_level::Warning: return "WARNING";
-        case logger_level::Error: return "ERROR";
-        default: return "UNKNOWN";
+    case logger_level::Info:
+        return "INFO";
+    case logger_level::Warning:
+        return "WARNING";
+    case logger_level::Error:
+        return "ERROR";
+    default:
+        return "UNKNOWN";
     }
 }
 
