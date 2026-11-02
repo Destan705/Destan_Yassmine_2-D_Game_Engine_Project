@@ -100,3 +100,25 @@ void Renderer::DrawTexture(textureHandle textureHandle, const Bounds& bounds) {
 
     SDL_RenderTexture(renderer, texture, nullptr, &rect);
 }
+
+std::pair<float,float> Renderer::getTextureDimensions(textureHandle textureHandle){
+    if(textureHandle == 0 || textureHandle >= textures.size()){
+        throw std::invalid_argument(" Invalid texture");
+    }
+
+    SDL_Texture* texture =  textures[textureHandle];
+
+    float w;
+    float h;
+
+
+    bool success = SDL_GetTextureSize(texture, &w, &h);
+
+    if (!success) {
+        throw std::runtime_error("Failed to get texture dimensions");
+    }
+
+    return {w, h};
+
+
+}

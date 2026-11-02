@@ -29,6 +29,9 @@ class Renderer {
     // Draws the loaded texture at the given position and size.
     void DrawTexture(textureHandle textureHandle, const Bounds& bounds);
 
+    //return width and height of a texture
+    std::pair<float,float> getTextureDimensions(textureHandle texture);
+
   private:
     SDL_Renderer* renderer = nullptr;
     bool hasWarned = false;             // flag to track if the warning has been logged
