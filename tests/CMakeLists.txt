@@ -40,6 +40,7 @@ add_executable(engine_tests
 target_link_libraries(engine_tests PRIVATE
     GTest::gtest_main
     SDL3::SDL3
+    nlohmann_json::nlohmann_json
 )
 
 target_include_directories(engine_tests PRIVATE
@@ -52,6 +53,7 @@ add_executable(game_tests
     core/test_game.cpp
     ../src/core/game.cpp
 )
+
 
 target_link_libraries(game_tests PRIVATE
     GTest::gtest_main
