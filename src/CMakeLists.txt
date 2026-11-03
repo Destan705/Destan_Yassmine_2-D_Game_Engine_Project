@@ -14,6 +14,7 @@ add_executable(game_engine
     ecs/component.cpp
     ecs/entity.cpp
     ecs/sprite.cpp
+    ecs/animationComponent.cpp
 
     events/event_dispatcher.cpp
 

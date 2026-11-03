@@ -1,3 +1,4 @@
+#include "animationComponent.h"
 #include "entity.h"
 #include "game.h"
 #include "input.h"
@@ -13,6 +14,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -55,6 +57,11 @@ void engine() {
         textureHandle handle2 = loadPlatformTexture("assets/test.bmp");
         sceneEntity2.addComponent<Sprite>(handle2);
 
+        Entity& sceneEntity3 = sceneManager.getActiveScene().createEntity();
+        Transform& transformComponent3 = sceneEntity3.addComponent<Transform>();
+        textureHandle handle3 = loadPlatformTexture("assets/anim_sheet.bmp");
+        sceneEntity3.addComponent<Sprite>(handle3);
+
         transformComponent.x = 100.0f;
         transformComponent.y = 150.0f;
         transformComponent.width = 50.0f;
@@ -64,6 +71,18 @@ void engine() {
         transformComponent2.y = 300.0f;
         transformComponent2.width = 50.0f;
         transformComponent2.height = 50.0f;
+
+        transformComponent3.x = 300.0f;
+        transformComponent3.y = 150.0f;
+        transformComponent3.width = 32.0f;
+        transformComponent3.height = 32.0f;
+        std::vector<Bounds> frames = {
+            {0.0f, 0.0f, 32.0f, 32.0f},
+            {32.0f, 0.0f, 32.0f, 32.0f},
+            {64.0f, 0.0f, 32.0f, 32.0f},
+            {96.0f, 0.0f, 32.0f, 32.0f},
+        };
+        sceneEntity3.addComponent<AnimationComponent>(frames, 0.25f, true);
 
         while (running) {
             auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
