@@ -19,6 +19,9 @@ add_executable(game_engine
 
     scene/scene.cpp
     scene/scene_manager.cpp
+
+    scene_serializer.cpp
+    asset_manager.cpp
 )
 
 target_link_libraries(game_engine PRIVATE SDL3::SDL3)
