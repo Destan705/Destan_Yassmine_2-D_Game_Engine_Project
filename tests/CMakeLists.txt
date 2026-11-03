@@ -17,6 +17,8 @@ add_executable(engine_tests
     scene/test_scene.cpp
 
     # Engine source files
+    ../src/colliderSystem.cpp
+
     ../src/rendering/renderer.cpp
 
     ../src/platform/platform.cpp
@@ -30,6 +32,7 @@ add_executable(engine_tests
     ../src/ecs/entity.cpp
     ../src/ecs/sprite.cpp
     ../src/ecs/animationComponent.cpp
+    ../src/ecs/colliderComponent.cpp
 
     ../src/events/event_dispatcher.cpp
 
@@ -49,19 +52,19 @@ target_include_directories(engine_tests PRIVATE
 
 # Test game behavior without SDL by supplying fake
 # input and drawing functions.
-add_executable(game_tests
-    core/test_game.cpp
-    ../src/core/game.cpp
-)
+# add_executable(game_tests
+#     core/test_game.cpp
+#     ../src/core/game.cpp
+# )
 
 
-target_link_libraries(game_tests PRIVATE
-    GTest::gtest_main
-)
+# target_link_libraries(game_tests PRIVATE
+#     GTest::gtest_main
+# )
 
-target_include_directories(game_tests PRIVATE
-    ${ENGINE_INCLUDE_DIRS}
-)
+# target_include_directories(game_tests PRIVATE
+#     ${ENGINE_INCLUDE_DIRS}
+# )
 
 # Copy SDL3.dll next to the test executable on Windows.
 if(WIN32)

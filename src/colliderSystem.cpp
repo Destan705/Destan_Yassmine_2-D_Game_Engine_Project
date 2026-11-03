@@ -41,7 +41,7 @@ namespace{
             return std::nullopt;
         }
 
-        if (bounds.right > bounds.left || bounds.bottom > bounds.top) {
+        if (bounds.right <= bounds.left || bounds.bottom <= bounds.top) {
             return std::nullopt;
         }
 
