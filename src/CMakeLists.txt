@@ -25,6 +25,8 @@ add_executable(game_engine
     colliderSystem.cpp
 
     asset_manager.cpp
+
+    audio_service.cpp
 )
 
 target_link_libraries(game_engine PRIVATE SDL3::SDL3)

@@ -8,6 +8,7 @@
 #include "logger.h"
 #include "platform.h"
 #include "scene_manager.h"
+#include "audio_service.h"
 
 #include <chrono>
 
@@ -37,6 +38,12 @@ void engine() {
                          .count();
 
     {
+        AudioService audioService(getAssetRootPath());
+        // temporary audio test
+        auto testSoundId = audioService.loadWav("audio/test.wav");
+        if (testSoundId != 0) {
+            audioService.play(testSoundId);
+        }
         EventDispatcher eventDispatcher;
         ColliderSystem colliderSystem;
         SceneManager sceneManager(eventDispatcher);

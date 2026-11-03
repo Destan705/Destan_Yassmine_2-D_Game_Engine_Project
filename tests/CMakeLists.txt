@@ -19,6 +19,8 @@ add_executable(engine_tests
     # Engine source files
     ../src/colliderSystem.cpp
 
+    ../src/audio_service.cpp   
+
     ../src/rendering/renderer.cpp
 
     ../src/platform/platform.cpp

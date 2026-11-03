@@ -14,10 +14,14 @@ textureHandle currentTexture = 0;
 
 bool initializePlatform() {
     // Initialize SDL Subsystems
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
         logMessage(logger_level::Error,
                    "SDL could not initialize! SDL_Error: " + std::string(SDL_GetError()));
         return false;
+    }
+    if (!SDL_Init(SDL_INIT_AUDIO)) {
+        logMessage(logger_level::Warning,
+                   "SDL could not initialize! (continuing without sound) SDL_Error : " + std::string(SDL_GetError()));
     }
     logMessage(logger_level::Info, "SDL3 initialized successfully!");
 
@@ -114,4 +118,13 @@ textureHandle loadPlatformTexture(const char* filePath) {
 
     textureHandle newTexture = renderer->LoadTexture(filePath);
     return newTexture;
+}
+
+std::filesystem::path getAssetRootPath() {
+    const char* basePath = SDL_GetBasePath();
+    if (basePath == nullptr) {
+        logMessage(logger_level::Warning, std::string("Unable to fetch base path : ") + SDL_GetError());
+        return {};
+    }
+    return std::filesystem::path(basePath) / "assets";
 }
