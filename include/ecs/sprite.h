@@ -8,6 +8,7 @@ class Sprite : public Component {
   public:
     explicit Sprite(textureHandle handle);
     void render(Renderer& renderer) override;
+    textureHandle getTexture() const;
 
   private:
     textureHandle currentTexture = 0;

@@ -22,3 +22,7 @@ void Sprite::render(Renderer& renderer) {
     Bounds bounds{transform->x, transform->y, transform->width, transform->height};
     renderer.DrawTexture(currentTexture, bounds);
 }
+
+textureHandle Sprite::getTexture() const {
+    return currentTexture;
+}

@@ -11,8 +11,7 @@
 
 namespace {
 // Reads one number from a JSON object, or throws a clear error.
-float readNumber(const nlohmann::json& object, const std::string& key,
-                 const std::string& context) {
+float readNumber(const nlohmann::json& object, const std::string& key, const std::string& context) {
     if (!object.contains(key) || !object.at(key).is_number()) {
         throw std::runtime_error(context + ": '" + key + "' is missing or not a number");
     }
@@ -42,26 +41,27 @@ std::unique_ptr<Scene> SceneSerializer::load(std::filesystem::path filePath,
     std::vector<std::set<std::string>> seenKeys;
 
     // Called by nlohmann for every piece of JSON it reads.
-    auto rejectDuplicates = [&](int /*depth*/, nlohmann::json::parse_event_t event, nlohmann::json& parsed) {
-       
-       if (event == nlohmann::json::parse_event_t::object_start) {
-        seenKeys.push_back({});
-        } 
-        
-        if (event == nlohmann::json::parse_event_t::object_end) {
-         seenKeys.pop_back();
+    auto rejectDuplicates = [&](int /*depth*/, nlohmann::json::parse_event_t event,
+                                nlohmann::json& parsed) {
+        if (event == nlohmann::json::parse_event_t::object_start) {
+            seenKeys.push_back({});
         }
-        return true;
+
+        if (event == nlohmann::json::parse_event_t::object_end) {
+            seenKeys.pop_back();
+        }
 
         if (event == nlohmann::json::parse_event_t::key) {
-            
-         std::string key = parsed.get<std::string>();
 
-        if (!seenKeys.back().insert(key).second) {
+            std::string key = parsed.get<std::string>();
 
-        throw std::runtime_error(filePath.string() + ": duplicate key '" + key + "'");
-    }
-}
+            if (!seenKeys.back().insert(key).second) {
+
+                throw std::runtime_error(filePath.string() + ": duplicate key '" + key + "'");
+            }
+        }
+
+        return true;
     };
 
     nlohmann::json data;
@@ -76,8 +76,7 @@ std::unique_ptr<Scene> SceneSerializer::load(std::filesystem::path filePath,
     }
     checkKnownKeys(data, {"version", "name", "entities"}, filePath.string());
 
-    if (!data.contains("version") || !data["version"].is_number_integer() ||
-        data["version"] != 1) {
+    if (!data.contains("version") || !data["version"].is_number_integer() || data["version"] != 1) {
         throw std::runtime_error("Unsupported or missing version in: " + filePath.string());
     }
 
@@ -140,5 +139,58 @@ std::unique_ptr<Scene> SceneSerializer::load(std::filesystem::path filePath,
 
 void SceneSerializer::save(const Scene& scene, std::filesystem::path filePath,
                            const AssetManager& assetManager) {
-    // TODO: task 4 (Scene → JSON) and task 5 (safe temp-file write)
+    nlohmann::json data;
+    data["version"] = 1;
+    data["name"] = scene.getSceneName();
+
+    nlohmann::json entities = nlohmann::json::array();
+
+    for (const auto& entity : scene.getEntities()) {
+        nlohmann::json entityData;
+
+        // Transform
+        Transform* transform = entity->getComponent<Transform>();
+        if (transform == nullptr) {
+            throw std::runtime_error("Entity is missing Transform component");
+        }
+        entityData["transform"]["x"] = transform->x;
+        entityData["transform"]["y"] = transform->y;
+        entityData["transform"]["width"] = transform->width;
+        entityData["transform"]["height"] = transform->height;
+
+        // Sprite
+        Sprite* sprite = entity->getComponent<Sprite>();
+        if (sprite == nullptr) {
+            throw std::runtime_error("Entity is missing Sprite component");
+        }
+        entityData["sprite"]["texture"] = assetManager.getPath(sprite->getTexture());
+
+        entities.push_back(entityData);
+    }
+
+    data["entities"] = entities;
+
+    // Write to a temp file first, so the real file is safe if anything fails.
+    std::filesystem::path tempPath = filePath;
+    tempPath += ".tmp";
+
+    std::ofstream file(tempPath);
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file for writing: " + tempPath.string());
+    }
+    file << data.dump(4);
+    file.close();
+
+    if (!file) {
+        std::filesystem::remove(tempPath);
+        throw std::runtime_error("Error writing to file: " + tempPath.string());
+    }
+
+    // Swap the finished temp file in place of the real one.
+    try {
+        std::filesystem::rename(tempPath, filePath);
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::filesystem::remove(tempPath);
+        throw std::runtime_error("Could not replace " + filePath.string() + ": " + e.what());
+    }
 }
