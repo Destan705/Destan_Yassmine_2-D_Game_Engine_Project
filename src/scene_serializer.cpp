@@ -1,7 +1,7 @@
 #include "scene_serializer.h"
+#include "animationComponent.h"
 #include "sprite.h"
 #include "transform.h"
-#include "animationComponent.h"
 #include <algorithm>
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -133,65 +133,64 @@ std::unique_ptr<Scene> SceneSerializer::load(std::filesystem::path filePath,
         entity.addComponent<Sprite>(handle);
 
         if (entityData.contains("animation")) {
-               const nlohmann::json& animData = entityData.at("animation");
-   checkKnownKeys(animData, {"frames", "frameDuration", "loop"}, where + " animation");
-   
-         // Animation (optional)
-        if (entityData.contains("animation")) {
-            std::string animContext = where + " animation";
-
-            if (!entityData.at("animation").is_object()) {
-                throw std::runtime_error(animContext + ": must be an object");
-            }
             const nlohmann::json& animData = entityData.at("animation");
-            checkKnownKeys(animData, {"frames", "frameDuration", "loop"}, animContext);
+            checkKnownKeys(animData, {"frames", "frameDuration", "loop"}, where + " animation");
 
-            // Frames
-            if (!animData.contains("frames") || !animData.at("frames").is_array() ||
-                animData.at("frames").empty()) {
-                throw std::runtime_error(animContext + ": 'frames' must be a non-empty array");
-            }
+            // Animation (optional)
+            if (entityData.contains("animation")) {
+                std::string animContext = where + " animation";
 
-            std::vector<Bounds> frames;
-            std::size_t frameIndex = 0;
-            for (const auto& frameData : animData.at("frames")) {
-                std::string frameContext = animContext + " frame " + std::to_string(frameIndex);
-                if (!frameData.is_object()) {
-                    throw std::runtime_error(frameContext + ": must be an object");
+                if (!entityData.at("animation").is_object()) {
+                    throw std::runtime_error(animContext + ": must be an object");
                 }
-                checkKnownKeys(frameData, {"x", "y", "w", "h"}, frameContext);
+                const nlohmann::json& animData = entityData.at("animation");
+                checkKnownKeys(animData, {"frames", "frameDuration", "loop"}, animContext);
 
-                Bounds frame;
-                frame.x = readNumber(frameData, "x", frameContext);
-                frame.y = readNumber(frameData, "y", frameContext);
-                frame.w = readNumber(frameData, "w", frameContext);
-                frame.h = readNumber(frameData, "h", frameContext);
-                frames.push_back(frame);
-                frameIndex++;
+                // Frames
+                if (!animData.contains("frames") || !animData.at("frames").is_array() ||
+                    animData.at("frames").empty()) {
+                    throw std::runtime_error(animContext + ": 'frames' must be a non-empty array");
+                }
+
+                std::vector<Bounds> frames;
+                std::size_t frameIndex = 0;
+                for (const auto& frameData : animData.at("frames")) {
+                    std::string frameContext = animContext + " frame " + std::to_string(frameIndex);
+                    if (!frameData.is_object()) {
+                        throw std::runtime_error(frameContext + ": must be an object");
+                    }
+                    checkKnownKeys(frameData, {"x", "y", "w", "h"}, frameContext);
+
+                    Bounds frame;
+                    frame.x = readNumber(frameData, "x", frameContext);
+                    frame.y = readNumber(frameData, "y", frameContext);
+                    frame.w = readNumber(frameData, "w", frameContext);
+                    frame.h = readNumber(frameData, "h", frameContext);
+                    frames.push_back(frame);
+                    frameIndex++;
+                }
+
+                // Duration
+                float duration = readNumber(animData, "frameDuration", animContext);
+                if (duration <= 0.0f) {
+                    throw std::runtime_error(animContext + ": 'frameDuration' must be > 0");
+                }
+
+                // Loop
+                if (!animData.contains("loop") || !animData.at("loop").is_boolean()) {
+                    throw std::runtime_error(animContext + ": 'loop' is missing or not true/false");
+                }
+                bool loop = animData.at("loop").get<bool>();
+
+                entity.addComponent<AnimationComponent>(frames, duration, loop);
             }
 
-            // Duration
-            float duration = readNumber(animData, "frameDuration", animContext);
-            if (duration <= 0.0f) {
-                throw std::runtime_error(animContext + ": 'frameDuration' must be > 0");
-            }
-
-            // Loop
-            if (!animData.contains("loop") || !animData.at("loop").is_boolean()) {
-                throw std::runtime_error(animContext + ": 'loop' is missing or not true/false");
-            }
-            bool loop = animData.at("loop").get<bool>();
-
-            entity.addComponent<AnimationComponent>(frames, duration, loop);
+            entityIndex++;
         }
 
-        entityIndex++;
+        return scene;
     }
-
-    return scene;
 }
-
-                                             }
 
 void SceneSerializer::save(const Scene& scene, std::filesystem::path filePath,
                            const AssetManager& assetManager) {
