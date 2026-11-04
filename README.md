@@ -2,7 +2,7 @@
 
 A small 2D game engine built by **Destan and Yassmine** using **C++20 and SDL3**. We're building this project to learn how game engines work, practise software architecture, and collaborate on a C++ codebase.
 
-The project is currently in **Phase 3**: data-driven scenes, cached resources and sprite animation, built on the Phase 2 scene and component system.
+The project is currently in **Phase 3**: data-driven scenes, cached resources, sprite animation, collision detection and sound effects, built on the Phase 2 scene and component system.
 
 ## Current Features
 
@@ -10,14 +10,16 @@ The project is currently in **Phase 3**: data-driven scenes, cached resources an
 - Scenes made of entities and components (`Transform`, `Sprite`, `AnimationComponent`), managed by `SceneManager` with a `SceneChangedEvent`.
 - BMP textures owned by the `Renderer`; `AssetManager` caches them by asset-relative path, so a shared image is loaded once.
 - Sprite-sheet animation: each animated sprite draws one source rectangle of its texture, with looping or hold-last-frame.
+- Collision detection: `ColliderComponent` boxes relative to the Transform; `ColliderSystem` reports overlapping entity pairs each frame (detection only, no physics).
+- Sound effects: `AudioService` loads short WAV files and plays one at a time; Space plays the test sound.
 - Scene files in JSON (version 1): `SceneSerializer` loads with full validation and saves safely through a temporary file. See [docs/scene-format.md](docs/scene-format.md).
 - Keyboard input abstraction for held, newly pressed and released keys.
 - Console logging with info, warning and error levels.
 - GoogleTest tests and GitHub Actions for builds, static analysis and tests.
 
-Not built yet: collision, audio, and loading the demo from its JSON file at startup. See [docs/phase3-decisions.md](docs/phase3-decisions.md).
+Not built yet: loading the demo from its JSON file at startup, and trigger enter/exit reactions. See [docs/phase3-decisions.md](docs/phase3-decisions.md).
 
-The current demo opens an 800 × 600 window with three sprites: two share one texture, and one plays a four-frame animation. Close the window to exit. Run it from the repository root, because the demo's texture paths are relative to the working directory.
+The current demo opens an 800 × 600 window with three sprites: two share one texture, and one plays a four-frame animation. Press Space to play a sound. Overlapping colliders are logged to the console. Close the window to exit. Run it from the repository root, because the demo's texture paths are relative to the working directory.
 
 ## Requirements
 
@@ -30,10 +32,10 @@ CMake downloads SDL3 and GoogleTest automatically during configuration, so an in
 
 ## Build and Run
 
-Clone the repository (use the branch you want to try, for example `phase2`):
+Clone the repository (use the branch you want to try, for example `phase3`):
 
 ```sh
-git clone --branch phase2 https://github.com/Destan705/Destan_Yassmine_Cool_Amazing_Project.git
+git clone --branch phase3 https://github.com/Destan705/Destan_Yassmine_Cool_Amazing_Project.git
 cd Destan_Yassmine_Cool_Amazing_Project
 ```
 
@@ -66,10 +68,10 @@ Load a scene from a file and make it active:
 
 ```cpp
 SceneSerializer serializer;
-AssetManager assets(renderer, "assets");   // texture paths are relative to this folder
+AssetManager assets(renderer, getAssetRootPath());   // <executable folder>/assets
 
 try {
-    sceneManager.setActiveScene(serializer.load("assets/scenes/phase3-demo.json", assets));
+    sceneManager.setActiveScene(serializer.load(getAssetRootPath() / "scenes/phase3-demo.json", assets));
 } catch (const std::exception& error) {
     logMessage(logger_level::Error, error.what()); // the previous scene keeps running
 }
@@ -87,12 +89,27 @@ entity.addComponent<Sprite>(assets.loadTexture("anim_sheet.bmp"));
 
 std::vector<Bounds> frames = {{0, 0, 32, 32}, {32, 0, 32, 32}, {64, 0, 32, 32}, {96, 0, 32, 32}};
 entity.addComponent<AnimationComponent>(frames, 0.25f, true); // 0.25 s per frame, looping
+
+entity.addComponent<ColliderComponent>(0.0f, 0.0f, 32.0f, 32.0f); // offsetX, offsetY, width, height
+```
+
+Detect overlaps after updating, and play a sound:
+
+```cpp
+ColliderSystem colliders;
+auto pairs = colliders.detectCollisions(sceneManager.getActiveScene()); // pairs of entity IDs
+
+AudioService audio(getAssetRootPath());
+AudioService::SoundId click = audio.loadWav("audio/test.wav"); // 0 if it failed
+if (wasKeyPressed(Key::Space) && click != 0) {
+    audio.play(click);
+}
 ```
 
 Save the active scene:
 
 ```cpp
-serializer.save(sceneManager.getActiveScene(), "assets/scenes/my-level.json", assets);
+serializer.save(sceneManager.getActiveScene(), "my-level.json", assets);
 ```
 
 The full file format, validation rules and path rules are in [docs/scene-format.md](docs/scene-format.md).
@@ -111,11 +128,11 @@ Some tests initialize SDL's window and rendering systems. Headless Linux environ
 | --- | --- |
 | `src/` | Engine, platform, input, rendering, and logging implementations |
 | `include/` | Headers and public interfaces |
-| `assets/` | Demo textures and `scenes/` (JSON scene files) |
+| `assets/` | Demo textures, `audio/` (WAV) and `scenes/` (JSON scene files) |
 | `docs/` | Scene format, Phase 3 decisions and verification |
 | `tests/` | GoogleTest tests |
 | `.github/workflows/` | Continuous integration |
 
 ## Collaboration
 
-Development happens on feature branches. Changes are reviewed through pull requests into the current phase branch (for example `phase2`) before reaching `main`.
+Development happens on feature branches. Changes are reviewed through pull requests into the current phase branch (for example `phase3`) before reaching `main`.

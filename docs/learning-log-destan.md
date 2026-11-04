@@ -56,4 +56,4 @@
 
 ## Collision and audio
 
-Not done yet. To be added after Yassmine's Collider and audio code are merged and I add a trigger for the verification ticket.
+Yassmine built these. To be filled in after I add a trigger with `ColliderComponent` and complete the teach-back for the verification ticket.

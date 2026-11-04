@@ -1,19 +1,18 @@
 # Phase 3 Verification
 
-> **Status:** template. Fill in after the integration ticket is merged. Every box must be ticked, or the failure linked to a fix on the owning feature.
+> **Status:** template for the `phase3` branch. Every box must be ticked, or the failure linked to a fix on the owning feature.
 
 ## 1. Clean checkout
 
 Run from a **fresh clone**, not your working folder.
 
 ```sh
-git clone --branch <PR-target-branch> https://github.com/Destan705/Destan_Yassmine_Cool_Amazing_Project.git phase3-check
+git clone --branch phase3 https://github.com/Destan705/Destan_Yassmine_Cool_Amazing_Project.git phase3-check
 cd phase3-check
 cmake -S . -B build
 cmake --build build
 ctest --test-dir build --output-on-failure
 ctest --test-dir build -N          # lists every registered test
-./build/bin/game_tests             # until it is registered with CTest
 ```
 
 | Check | Destan (macOS) | Yassmine (Windows) |
@@ -21,21 +20,22 @@ ctest --test-dir build -N          # lists every registered test
 | Commit hash (`git rev-parse --short HEAD`) | | |
 | Configure + build succeeds | ☐ | ☐ |
 | All `ctest` tests pass (count: ___) | ☐ | ☐ |
-| Every test executable appears in `ctest -N` (incl. `game_tests`) | ☐ | ☐ |
+| Every test executable appears in `ctest -N` | ☐ | ☐ |
 | `clang-format --dry-run --Werror` on `src/`, `include/`, `tests/` is clean | ☐ | ☐ |
 | Demo runs: two sprites sharing a texture, one animated | ☐ | ☐ |
+| Space plays the test sound once per press (or a clear warning without a sound device) | ☐ | ☐ |
 | Platform limitations noticed | | |
 
 **CI:** PR link: ____ — status ☐ green (build, clang-tidy, tests).
 
-Known gap to fix before ticking: `game_tests` is not registered with CTest (`tests/CMakeLists.txt` only calls `gtest_discover_tests(engine_tests)`).
+Note: `engine_tests` is the only test executable. The old `game_tests` target is commented out in `tests/CMakeLists.txt` because `test_game.cpp` was removed with the Phase 1 demo. Confirm that's intended, or delete the commented block.
 
 ## 2. Independent use of the APIs
 
 | Task | Who | Done | How (file / API used) |
 | --- | --- | --- | --- |
 | Add a second animated entity via data / public APIs | Yassmine | ☐ | |
-| Add a trigger using `ColliderComponent` / public APIs | Destan | ☐ | |
+| Add a trigger using `ColliderComponent` / public APIs (e.g. an overlapping collider in `createGameScene()` or a scene file; check the log shows `Collision detected between Entity …`) | Destan | ☐ | |
 | Neither change touched SDL polling or the engine loop | both | ☐ | |
 
 ## 3. Teach-back
@@ -60,8 +60,11 @@ Each person explains each topic in their own words; tick when the other agrees i
 | **Retained textures** | Textures are never unloaded until the Renderer is destroyed; switching scenes does not free them |
 | **Scene-local IDs** | Entity IDs restart at 1 in every scene and are not saved; never store an ID across a scene switch |
 | **Detection-only collision** | Overlaps are reported; objects are not pushed apart or blocked |
+| **No enter/exit events** | A pair is reported every frame while overlapping; gameplay must compare frames to detect "entered" |
 | **No continuous collision** | Fast, thin objects can pass through each other between frames |
-| **One audio playback** | Only one sound plays at a time |
+| **One audio playback** | Only one sound plays at a time; playing again restarts it |
+| **Short WAVs only** | WAVs longer than 5 seconds are rejected; total cached audio is capped |
 | **Scene-content saves** | Saves store scene layout, not a gameplay checkpoint (no animation progress, no game state) |
 | **BMP only** | Textures load through `SDL_LoadBMP` |
 | **Frame bounds checked at draw time** | An out-of-range animation frame is skipped with a warning, not rejected on load |
+| **Demo not loaded from JSON** | `createGameScene()` builds the demo in code with working-directory-relative paths; run from the repo root |
