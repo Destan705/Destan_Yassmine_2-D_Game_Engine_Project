@@ -2,19 +2,22 @@
 
 A small 2D game engine built by **Destan and Yassmine** using **C++20 and SDL3**. We're building this project to learn how game engines work, practise software architecture, and collaborate on a C++ codebase.
 
-The project is currently in **Phase 1**, focused on the engine's core foundations.
+The project is currently in **Phase 3**: data-driven scenes, cached resources and sprite animation, built on the Phase 2 scene and component system.
 
 ## Current Features
 
-- Engine initialization, shutdown, and a game loop with input, update, and rendering stages.
-- Delta-time calculation for future game updates.
-- Keyboard input abstraction for held, newly pressed, and released keys.
-- SDL3 window and renderer setup, filled rectangles, and BMP texture loading and rendering.
-- Texture and renderer cleanup through RAII.
-- Console logging with info, warning, and error levels.
-- Automated tests using GoogleTest, plus GitHub Actions for builds, static analysis, and tests.
+- Engine loop with input, update and rendering stages, using delta time in seconds.
+- Scenes made of entities and components (`Transform`, `Sprite`, `AnimationComponent`), managed by `SceneManager` with a `SceneChangedEvent`.
+- BMP textures owned by the `Renderer`; `AssetManager` caches them by asset-relative path, so a shared image is loaded once.
+- Sprite-sheet animation: each animated sprite draws one source rectangle of its texture, with looping or hold-last-frame.
+- Scene files in JSON (version 1): `SceneSerializer` loads with full validation and saves safely through a temporary file. See [docs/scene-format.md](docs/scene-format.md).
+- Keyboard input abstraction for held, newly pressed and released keys.
+- Console logging with info, warning and error levels.
+- GoogleTest tests and GitHub Actions for builds, static analysis and tests.
 
-The current demo opens an 800 × 600 window and displays a red rectangle and a test texture. Close the window to exit. Game logic is still a placeholder.
+Not built yet: collision, audio, and loading the demo from its JSON file at startup. See [docs/phase3-decisions.md](docs/phase3-decisions.md).
+
+The current demo opens an 800 × 600 window with three sprites: two share one texture, and one plays a four-frame animation. Close the window to exit. Run it from the repository root, because the demo's texture paths are relative to the working directory.
 
 ## Requirements
 
@@ -27,10 +30,10 @@ CMake downloads SDL3 and GoogleTest automatically during configuration, so an in
 
 ## Build and Run
 
-Clone the Phase 1 branch:
+Clone the repository (use the branch you want to try, for example `phase2`):
 
 ```sh
-git clone --branch phase1 https://github.com/Destan705/Destan_Yassmine_Cool_Amazing_Project.git
+git clone --branch phase2 https://github.com/Destan705/Destan_Yassmine_Cool_Amazing_Project.git
 cd Destan_Yassmine_Cool_Amazing_Project
 ```
 
@@ -57,6 +60,43 @@ With a multi-configuration generator, such as Visual Studio, the executable is t
 
 Assets are copied beside the executable during the build. Keep the `assets` folder alongside it when moving the executable.
 
+## Using the Engine
+
+Load a scene from a file and make it active:
+
+```cpp
+SceneSerializer serializer;
+AssetManager assets(renderer, "assets");   // texture paths are relative to this folder
+
+try {
+    sceneManager.setActiveScene(serializer.load("assets/scenes/phase3-demo.json", assets));
+} catch (const std::exception& error) {
+    logMessage(logger_level::Error, error.what()); // the previous scene keeps running
+}
+```
+
+Add a textured, animated entity in code:
+
+```cpp
+Entity& entity = sceneManager.getActiveScene().createEntity();
+
+Transform& transform = entity.addComponent<Transform>();
+transform.x = 300; transform.y = 150; transform.width = 32; transform.height = 32;
+
+entity.addComponent<Sprite>(assets.loadTexture("anim_sheet.bmp"));
+
+std::vector<Bounds> frames = {{0, 0, 32, 32}, {32, 0, 32, 32}, {64, 0, 32, 32}, {96, 0, 32, 32}};
+entity.addComponent<AnimationComponent>(frames, 0.25f, true); // 0.25 s per frame, looping
+```
+
+Save the active scene:
+
+```cpp
+serializer.save(sceneManager.getActiveScene(), "assets/scenes/my-level.json", assets);
+```
+
+The full file format, validation rules and path rules are in [docs/scene-format.md](docs/scene-format.md).
+
 ## Run Tests
 
 ```sh
@@ -71,10 +111,11 @@ Some tests initialize SDL's window and rendering systems. Headless Linux environ
 | --- | --- |
 | `src/` | Engine, platform, input, rendering, and logging implementations |
 | `include/` | Headers and public interfaces |
-| `assets/` | Demo assets |
+| `assets/` | Demo textures and `scenes/` (JSON scene files) |
+| `docs/` | Scene format, Phase 3 decisions and verification |
 | `tests/` | GoogleTest tests |
 | `.github/workflows/` | Continuous integration |
 
 ## Collaboration
 
-Development happens on feature branches. Changes are reviewed through pull requests before being merged into `main`.
+Development happens on feature branches. Changes are reviewed through pull requests into the current phase branch (for example `phase2`) before reaching `main`.
