@@ -3,6 +3,7 @@
 #include "scene.h"
 #include <filesystem>
 #include <memory>
+
 class SceneSerializer {
   public:
     // turns a file in to scene

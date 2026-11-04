@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <cmath>
 
 Renderer::Renderer(SDL_Window* window) {
     renderer = SDL_CreateRenderer(window, nullptr);
@@ -78,28 +79,65 @@ textureHandle Renderer::LoadTexture(const char* filePath) {
     return static_cast<textureHandle>(textures.size() - 1);
 }
 
-void Renderer::DrawTexture(textureHandle textureHandle, const Bounds& bounds) {
-    if (textureHandle == 0 || textureHandle >= textures.size()) {
-        if (hasWarned != true) {
+
+void Renderer::DrawTexture(textureHandle handle, const Bounds& bounds,
+                           std::optional<Bounds> src) {
+    // Check that the texture handle is valid.
+    if (handle == 0 || handle >= textures.size()) {
+        if (!hasWarned) {
             logMessage(logger_level::Warning, "Invalid texture handle");
             hasWarned = true;
         }
         return;
     }
-    SDL_Texture* texture = textures[textureHandle];
+
+    SDL_Texture* texture = textures[handle];
     if (texture == nullptr) {
         return;
     }
 
-    SDL_FRect rect;
+    // Destination: where the texture will appear on screen.
+    SDL_FRect destRect{
+        bounds.x, bounds.y, bounds.w, bounds.h
+    };
 
-    rect.x = bounds.x;
-    rect.y = bounds.y;
-    rect.w = bounds.w;
-    rect.h = bounds.h;
+    // No source rectangle means draw the entire texture.
+    if (!src.has_value()) {
+        SDL_RenderTexture(renderer, texture, nullptr, &destRect);
+        return;
+    }
 
-    SDL_RenderTexture(renderer, texture, nullptr, &rect);
+    // Get the original texture dimensions.
+    float textureWidth = 0.0f;
+    float textureHeight = 0.0f;
+
+    if (!SDL_GetTextureSize(texture, &textureWidth, &textureHeight)) {
+        logMessage(logger_level::Warning,
+                   "Could not get texture dimensions");
+        return;
+    }
+
+    // Check that the selected frame is valid and inside the texture.
+    if (!std::isfinite(src->x) || !std::isfinite(src->y) ||
+        !std::isfinite(src->w) || !std::isfinite(src->h) ||
+        src->x < 0 || src->y < 0 ||
+        src->w <= 0 || src->h <= 0 ||
+        src->x + src->w > textureWidth ||
+        src->y + src->h > textureHeight) {
+
+        logMessage(logger_level::Warning,
+                   "Invalid texture source rectangle");
+        return;
+    }
+
+    // Source: which part of the texture should be drawn.
+    SDL_FRect srcRect{
+        src->x, src->y, src->w, src->h
+    };
+
+    SDL_RenderTexture(renderer, texture, &srcRect, &destRect);
 }
+
 
 std::pair<float,float> Renderer::getTextureDimensions(textureHandle textureHandle){
     if(textureHandle == 0 || textureHandle >= textures.size()){

@@ -1,4 +1,3 @@
-
 add_executable(engine_tests
     # Tests
     rendering/test_renderer.cpp
@@ -11,16 +10,18 @@ add_executable(engine_tests
 
     ecs/test_component_entity.cpp
     ecs/test_transform_sprite.cpp
+    ecs/test_animation_component.cpp
 
     events/test_event_dispatcher.cpp
 
     scene/test_scene.cpp
     scene/test_scene_serializer.cpp
+    scene/test_scene_serializer_contract.cpp
 
     # Engine source files
     ../src/colliderSystem.cpp
 
-    ../src/audio_service.cpp   
+    ../src/audio_service.cpp
 
     ../src/rendering/renderer.cpp
 
@@ -62,7 +63,6 @@ target_include_directories(engine_tests PRIVATE
 #     core/test_game.cpp
 #     ../src/core/game.cpp
 # )
-
 
 # target_link_libraries(game_tests PRIVATE
 #     GTest::gtest_main

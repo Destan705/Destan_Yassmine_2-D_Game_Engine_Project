@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 #include <vector>
 #include <utility>
+#include <optional>
 
 class Renderer {
   public:
@@ -28,7 +29,7 @@ class Renderer {
     textureHandle LoadTexture(const char* filePath);
 
     // Draws the loaded texture at the given position and size.
-    void DrawTexture(textureHandle textureHandle, const Bounds& bounds);
+    void DrawTexture(textureHandle textureHandle, const Bounds& bounds, std::optional<Bounds> src = std::nullopt);
 
     //return width and height of a texture
     std::pair<float,float> getTextureDimensions(textureHandle texture);
