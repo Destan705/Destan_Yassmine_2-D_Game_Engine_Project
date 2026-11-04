@@ -4,7 +4,7 @@ Scene::Scene(std::string name) {
     sceneName = name;
 }
 
-std::string Scene::getSceneName() {
+std::string Scene::getSceneName() const {
     return sceneName;
 }
 
@@ -27,6 +27,6 @@ void Scene::render(Renderer& renderer) {
     }
 }
 
-const std::vector<std::unique_ptr<Entity>>& Scene::getEntities() {
+const std::vector<std::unique_ptr<Entity>>& Scene::getEntities() const {
     return entities;
 }

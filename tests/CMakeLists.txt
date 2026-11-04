@@ -15,6 +15,7 @@ add_executable(engine_tests
     events/test_event_dispatcher.cpp
 
     scene/test_scene.cpp
+    scene/test_scene_serializer.cpp
 
     # Engine source files
     ../src/colliderSystem.cpp
@@ -40,6 +41,9 @@ add_executable(engine_tests
 
     ../src/scene/scene.cpp
     ../src/scene/scene_manager.cpp
+
+    ../src/scene_serializer.cpp
+    ../src/asset_manager.cpp
 )
 
 target_link_libraries(engine_tests PRIVATE

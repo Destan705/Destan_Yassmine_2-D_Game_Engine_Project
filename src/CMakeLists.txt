@@ -27,6 +27,8 @@ add_executable(game_engine
     asset_manager.cpp
 
     audio_service.cpp
+
+    scene_serializer.cpp
 )
 
 target_link_libraries(game_engine PRIVATE SDL3::SDL3)

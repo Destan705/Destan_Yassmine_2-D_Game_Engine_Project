@@ -8,12 +8,13 @@
 class Scene {
   public:
     explicit Scene(std::string name);
-    std::string getSceneName(); // gives the name back when askes
+    std::string getSceneName() const; // gives the name back when askes
     Entity& createEntity(); // makes new entity stores, gives it the next ID, stores it, and hands
                             // it back so you can add components.
     const std::vector<std::unique_ptr<Entity>>& getEntities();
     void update(float dt);  // tells every entity to update, in order they were made
     void render(Renderer&); // tells every entity to draw, in the same order
+    const std::vector<std::unique_ptr<Entity>>& getEntities() const;
 
   private:
     std::string sceneName;                         // names of the scenes
