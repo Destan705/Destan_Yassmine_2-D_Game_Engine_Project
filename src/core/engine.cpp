@@ -1,6 +1,7 @@
 
 #include "engine.h"
 
+#include "audio_service.h"
 #include "colliderSystem.h"
 #include "event_dispatcher.h"
 #include "game.h"
@@ -8,9 +9,10 @@
 #include "logger.h"
 #include "platform.h"
 #include "scene_manager.h"
-#include "audio_service.h"
 
 #include <chrono>
+#include <exception>
+#include <string>
 
 void renderEngineFrame(SceneManager& sceneManager) {
     renderPlatform(sceneManager.getActiveScene());
@@ -18,10 +20,6 @@ void renderEngineFrame(SceneManager& sceneManager) {
 
 void engine() {
     bool running = initializePlatform();
-
-    if (running) {
-        initializeInput();
-    }
 
     if (!running) {
         logMessage(
@@ -31,60 +29,88 @@ void engine() {
         return;
     }
 
-    float delta_time = 0.0f;
+    try {
+        initializeInput();
 
-    auto prev_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-                         std::chrono::steady_clock::now().time_since_epoch())
-                         .count();
+        float delta_time = 0.0f;
 
-    {
-        AudioService audioService(getAssetRootPath());
-        // temporary audio test
-        auto testSoundId = audioService.loadWav("audio/test.wav");
-        if (testSoundId != 0) {
-            audioService.play(testSoundId);
-        }
-        EventDispatcher eventDispatcher;
-        ColliderSystem colliderSystem;
-        SceneManager sceneManager(eventDispatcher);
+        auto prev_time =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()
+            ).count();
 
-        // Let gameplay create the Scene and its Entities.
-        sceneManager.setActiveScene(createGameScene());
+        {
+            // Initialize engine systems.
+            AudioService audioService(getAssetRootPath());
+            EventDispatcher eventDispatcher;
+            ColliderSystem colliderSystem;
+            SceneManager sceneManager(eventDispatcher);
 
-        while (running) {
-            auto current_time =
-                std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::steady_clock::now().time_since_epoch())
-                    .count();
+            // Load the test sound once.
+            const auto testSoundId = audioService.loadWav("audio/test.wav");
 
-            // Process input.
-            running = processPlatformEvents();
+            // Let gameplay create the Scene and its Entities.
+            sceneManager.setActiveScene(createGameScene());
 
-            if (!running) {
-                break;
+            while (running) {
+                auto current_time =
+                    std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::steady_clock::now().time_since_epoch()
+                    ).count();
+
+                // Process input.
+                running = processPlatformEvents();
+
+                if (!running) {
+                    break;
+                }
+
+                // Play the cached sound once per Space keypress.
+                if (wasKeyPressed(Key::Space) && testSoundId != 0) {
+                    if (!audioService.play(testSoundId)) {
+                        logMessage(
+                            logger_level::Warning,
+                            "Failed to play test sound"
+                        );
+                    }
+                }
+
+                // Calculate delta time.
+                delta_time = (current_time - prev_time) / 1000.0f;
+
+                // Update the Scene and its Components.
+                sceneManager.update(delta_time);
+
+                // Detect collisions after position updates.
+                auto collisionPairs = colliderSystem.detectCollisions(
+                    sceneManager.getActiveScene()
+                );
+
+                // Let gameplay react to detected overlaps.
+                handleCollisions(collisionPairs);
+
+                // Render the active Scene.
+                renderEngineFrame(sceneManager);
+
+                prev_time = current_time;
             }
-
-            // Calculate delta time.
-            delta_time = (current_time - prev_time) / 1000.0f;
-
-            // Update the Scene and its Components.
-            sceneManager.update(delta_time);
-
-            // Detect collisions after position updates.
-            auto collisionPairs = colliderSystem.detectCollisions(
-                sceneManager.getActiveScene()
-            );
-
-            // Let gameplay react to detected overlaps.
-            handleCollisions(collisionPairs);
-
-            // Render the active Scene.
-            renderEngineFrame(sceneManager);
-
-            prev_time = current_time;
         }
+
+        // AudioService, SceneManager, and other systems
+        // are destroyed before SDL shuts down.
+
+    } catch (const std::exception& e) {
+        logMessage(
+            logger_level::Error,
+            std::string("Engine error: ") + e.what()
+        );
+    } catch (...) {
+        logMessage(
+            logger_level::Error,
+            "An unknown error occurred in the engine"
+        );
     }
 
-    // Shutdown after SceneManager and systems are destroyed.
+    // Runs after normal execution or a caught exception.
     shutdownPlatform();
 }

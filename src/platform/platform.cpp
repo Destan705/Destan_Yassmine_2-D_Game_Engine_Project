@@ -17,6 +17,7 @@ bool initializePlatform() {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         logMessage(logger_level::Error,
                    "SDL could not initialize! SDL_Error: " + std::string(SDL_GetError()));
+        SDL_Quit();
         return false;
     }
     if (!SDL_Init(SDL_INIT_AUDIO)) {
@@ -50,12 +51,9 @@ bool initializePlatform() {
 
         currentTexture = renderer->LoadTexture(texturePath.c_str());
 
-    } catch (const std::runtime_error& e) {
+    } catch (const std::exception& e) {
         logMessage(logger_level::Error, e.what());
-        renderer.reset();
-        SDL_DestroyWindow(window);
-        window = nullptr;
-        SDL_Quit();
+        shutdownPlatform();
         return false;
     }
 
