@@ -15,6 +15,7 @@ add_executable(engine_tests
     events/test_event_dispatcher.cpp
 
     scene/test_scene.cpp
+    scene/test_scene_serializer.cpp
 
     # Engine source files
     ../src/rendering/renderer.cpp
