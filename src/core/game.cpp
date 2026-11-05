@@ -27,24 +27,55 @@ std::unique_ptr<Scene> createGameScene(AssetManager& assetManager) {
 
 }
 
-void handleCollisions(
-    const std::vector<ColliderSystem::CollisionPair>& collisionPairs
-) {
-    // Gameplay can decide what each overlap means.
-    // For now, log pairs to verify that detection works.
-    //
-    // This does not stop movement, push Entities apart,
-    // or apply physics.
+bool handleCollisions(const std::vector<ColliderSystem::CollisionPair>& collisionPairs, Scene& scene, bool& wasOverlapping) {
+    const auto& entities = scene.getEntities();
 
-    for (const auto& [entityAId, entityBId] : collisionPairs) {
-        logMessage(
-            logger_level::Info,
-            "Collision detected between Entity " +
-                std::to_string(entityAId) +
-                " and Entity " +
-                std::to_string(entityBId)
-        );
+    // The demo's trigger is the second Entity.
+    if (entities.size() < 2) {
+        wasOverlapping = false;
+        return false;
     }
+
+    Entity* player = nullptr;
+
+    // Find the player by its AnimationComponent.
+    for (const auto& entity : entities) {
+        if (entity->getComponent<AnimationComponent>() != nullptr) {
+            player = entity.get();
+            break;
+        }
+    }
+
+    // No player means no valid trigger overlap.
+    if (player == nullptr) {
+        wasOverlapping = false;
+        return false;
+    }
+
+    Entity* trigger = entities[1].get();
+
+    if (player == trigger) {
+        wasOverlapping = false;
+        return false;
+    }
+
+    bool currentlyOverlapping = false;
+
+    // Find the collision between our player and trigger.
+    for (const auto& [entityAId, entityBId] : collisionPairs) {
+        if ((entityAId == player->getId() && entityBId == trigger->getId()) || (entityAId == trigger->getId() && entityBId == player->getId())) {
+            currentlyOverlapping = true;
+            break;
+        }
+    }
+
+    // A new entry happens only if they weren't overlapping before.
+    bool justEntered = currentlyOverlapping && !wasOverlapping;
+
+    // Remember the current state for the next frame.
+    wasOverlapping = currentlyOverlapping;
+
+    return justEntered;
 }
 
 

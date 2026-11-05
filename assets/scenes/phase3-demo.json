@@ -8,7 +8,8 @@
     },
     {
       "transform": { "x": 200, "y": 300, "width": 50, "height": 50 },
-      "sprite": { "texture": "test.bmp" }
+      "sprite": { "texture": "test.bmp" },
+      "collider" : {"offsetX": 0, "offsetY": 0, "width":50, "height":50, "enabled": true}
     },
     {
       "transform": { "x": 300, "y": 150, "width": 32, "height": 32 },
@@ -22,7 +23,8 @@
         ],
         "frameDuration": 0.25,
         "loop": true
-      }
+      },
+      "collider" : {"offsetX": 0, "offsetY": 0, "width":32, "height":32, "enabled": true}
     }
   ]
 }

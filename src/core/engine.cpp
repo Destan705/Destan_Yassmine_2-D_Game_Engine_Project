@@ -52,6 +52,9 @@ void engine() {
             // Let gameplay create the Scene and its Entities.
             sceneManager.setActiveScene(createGameScene(getPlatformAssetManager()));
 
+            
+            bool wasOverlapping = false;    
+            
             while (running) {
                 auto current_time =
                     std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -63,16 +66,6 @@ void engine() {
 
                 if (!running) {
                     break;
-                }
-
-                // Play the cached sound once per Space keypress.
-                if (wasKeyPressed(Key::Space) && testSoundId != 0) {
-                    if (!audioService.play(testSoundId)) {
-                        logMessage(
-                            logger_level::Warning,
-                            "Failed to play test sound"
-                        );
-                    }
                 }
 
                 // Calculate delta time.
@@ -90,7 +83,15 @@ void engine() {
                 );
 
                 // Let gameplay react to detected overlaps.
-                handleCollisions(collisionPairs);
+                bool justEntered = handleCollisions(collisionPairs, sceneManager.getActiveScene(), wasOverlapping);
+                
+                if (justEntered) {
+                    logMessage(logger_level::Info, "Player entered trigger!");
+
+                    if (testSoundId != 0 && !audioService.play(testSoundId)) {
+                        logMessage(logger_level::Warning, "Failed to play trigger sound");
+                    }
+                }
 
                 // Render the active Scene.
                 renderEngineFrame(sceneManager);
