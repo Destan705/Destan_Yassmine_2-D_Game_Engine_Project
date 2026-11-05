@@ -50,7 +50,7 @@ void engine() {
             const auto testSoundId = audioService.loadWav("audio/test.wav");
 
             // Let gameplay create the Scene and its Entities.
-            sceneManager.setActiveScene(createGameScene());
+            sceneManager.setActiveScene(createGameScene(getPlatformAssetManager()));
 
             while (running) {
                 auto current_time =
