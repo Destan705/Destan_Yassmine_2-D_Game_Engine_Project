@@ -15,14 +15,24 @@ add_executable(game_engine
     ecs/entity.cpp
     ecs/sprite.cpp
     ecs/animationComponent.cpp
+    ecs/colliderComponent.cpp
 
     events/event_dispatcher.cpp
 
     scene/scene.cpp
     scene/scene_manager.cpp
+
+    colliderSystem.cpp
+
+    asset_manager.cpp
+
+    audio_service.cpp
+
+    scene_serializer.cpp
 )
 
 target_link_libraries(game_engine PRIVATE SDL3::SDL3)
+target_link_libraries(game_engine PRIVATE nlohmann_json::nlohmann_json)
 
 target_include_directories(game_engine PRIVATE
     ${ENGINE_INCLUDE_DIRS}

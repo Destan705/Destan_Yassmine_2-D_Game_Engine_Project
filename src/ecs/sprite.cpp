@@ -23,7 +23,10 @@ void Sprite::render(Renderer& renderer){
     renderer.DrawTexture(currentTexture, bounds, src);
 }
 
-void Sprite::sourceSet(std::optional<Bounds> source){
-  src = source;
+void Sprite::sourceSet(std::optional<Bounds> source) {
+    src = source;
 }
 
+textureHandle Sprite::getTexture() const {
+    return currentTexture;
+}

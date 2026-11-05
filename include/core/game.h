@@ -1,8 +1,21 @@
 
-#include <array>
+#pragma once
 
-void initializeGame();
+#include "colliderSystem.h"
 
-void updateGame(float delta_time);
+#include <memory>
+#include <vector>
 
-void renderGame();
+class Scene;
+class AssetManager;
+
+// Builds the initial game scene.
+// SceneManager takes ownership of the returned Scene.
+std::unique_ptr<Scene> createGameScene(AssetManager& assetManager);
+
+// Allows gameplay to react to overlapping Entity pairs.
+// Detection alone does not block movement or apply physics.
+bool handleCollisions(const std::vector<ColliderSystem::CollisionPair>& collisionPairs, Scene& scene, bool& wasOverlapping);
+
+
+void updatePlayerMovement(Scene& scene, float deltaTime);

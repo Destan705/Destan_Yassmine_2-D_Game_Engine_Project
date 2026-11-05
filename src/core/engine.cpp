@@ -1,112 +1,200 @@
-#include "animationComponent.h"
-#include "entity.h"
+
+#include "engine.h"
+
+#include "audio_service.h"
+#include "colliderSystem.h"
+#include "event_dispatcher.h"
 #include "game.h"
 #include "input.h"
 #include "logger.h"
 #include "platform.h"
-#include "render_api.h"
 #include "scene_manager.h"
-#include "sprite.h"
-#include "transform.h"
-#include <SDL3/SDL.h>
-#include <array>
-#include <chrono>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <vector>
+#include "scene_serializer.h"
 
-using namespace std;
+#include <chrono>
+#include <exception>
+#include <filesystem>
+#include <string>
 
 void renderEngineFrame(SceneManager& sceneManager) {
     renderPlatform(sceneManager.getActiveScene());
 }
 
 void engine() {
-
     bool running = initializePlatform();
 
-    if (running) {
-        initializeInput();
-    }
-
     if (!running) {
-        logMessage(logger_level::Error, "Error occured while initializing engine");
+        logMessage(
+            logger_level::Error,
+            "Error occurred while initializing engine"
+        );
         return;
     }
 
-    float delta_time = 0.0f;
-    auto prev_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-                         std::chrono::steady_clock::now().time_since_epoch())
-                         .count();
+    try {
+        initializeInput();
 
-    {
-        EventDispatcher eventDispatcher;
-        SceneManager sceneManager(
-            eventDispatcher); // In C++, new SceneManager() returns a SceneManager* (pointer), but
-                              // sceneManager is declared as a SceneManager object, not a pointer
-        sceneManager.setActiveScene(std::make_unique<Scene>("Current Scene"));
+        float delta_time = 0.0f;
 
-        Entity& sceneEntity = sceneManager.getActiveScene().createEntity();
-        Transform& transformComponent = sceneEntity.addComponent<Transform>();
-        textureHandle handle = loadPlatformTexture("assets/test.bmp");
-        sceneEntity.addComponent<Sprite>(handle);
+        auto prev_time =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()
+            ).count();
 
-        Entity& sceneEntity2 = sceneManager.getActiveScene().createEntity();
-        Transform& transformComponent2 = sceneEntity2.addComponent<Transform>();
-        textureHandle handle2 = loadPlatformTexture("assets/test.bmp");
-        sceneEntity2.addComponent<Sprite>(handle2);
+        {
+            // Initialize engine systems.
+            AudioService audioService(getAssetRootPath());
+            EventDispatcher eventDispatcher;
+            ColliderSystem colliderSystem;
+            SceneManager sceneManager(eventDispatcher);
+            SceneSerializer sceneSerializer;
 
-        Entity& sceneEntity3 = sceneManager.getActiveScene().createEntity();
-        Transform& transformComponent3 = sceneEntity3.addComponent<Transform>();
-        textureHandle handle3 = loadPlatformTexture("assets/anim_sheet.bmp");
-        sceneEntity3.addComponent<Sprite>(handle3);
+            // Save beside the demo assets, not in the working directory.
+            const std::filesystem::path savedScenePath =
+                getAssetRootPath() / "scenes/phase3-demo-saved.json";
 
-        transformComponent.x = 100.0f;
-        transformComponent.y = 150.0f;
-        transformComponent.width = 50.0f;
-        transformComponent.height = 50.0f;
+            // Load the trigger sound once.
+            const auto testSoundId = audioService.loadWav("audio/test.wav");
 
-        transformComponent2.x = 200.0f;
-        transformComponent2.y = 300.0f;
-        transformComponent2.width = 50.0f;
-        transformComponent2.height = 50.0f;
+            // Load the original demo Scene from JSON.
+            sceneManager.setActiveScene(
+                createGameScene(getPlatformAssetManager())
+            );
 
-        transformComponent3.x = 300.0f;
-        transformComponent3.y = 150.0f;
-        transformComponent3.width = 32.0f;
-        transformComponent3.height = 32.0f;
-        std::vector<Bounds> frames = {
-            {0.0f, 0.0f, 32.0f, 32.0f},
-            {32.0f, 0.0f, 32.0f, 32.0f},
-            {64.0f, 0.0f, 32.0f, 32.0f},
-            {96.0f, 0.0f, 32.0f, 32.0f},
-        };
-        sceneEntity3.addComponent<AnimationComponent>(frames, 0.25f, true);
+            // Remember whether the player was inside the trigger.
+            bool wasOverlapping = false;
 
-        while (running) {
-            auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-                                    std::chrono::steady_clock::now().time_since_epoch())
-                                    .count();
+            while (running) {
+                auto current_time =
+                    std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::steady_clock::now().time_since_epoch()
+                    ).count();
 
-            //  Process Input
-            running = processPlatformEvents();
+                // 1. Process input.
+                running = processPlatformEvents();
 
-            if (!running) {
-                break;
+                if (!running) {
+                    break;
+                }
+
+                // 2. Calculate delta time.
+                delta_time = (current_time - prev_time) / 1000.0f;
+
+                // 3. Move player using keyboard input.
+                updatePlayerMovement(
+                    sceneManager.getActiveScene(),
+                    delta_time
+                );
+
+                // 4. Update Scene and Components.
+                sceneManager.update(delta_time);
+
+                // 5. Detect collisions.
+                auto collisionPairs = colliderSystem.detectCollisions(
+                    sceneManager.getActiveScene()
+                );
+
+                // 6. React to new trigger overlaps.
+                bool justEntered = handleCollisions(
+                     collisionPairs, sceneManager.getActiveScene(),
+                    wasOverlapping
+                );
+
+                if (justEntered) {
+                    logMessage(
+                        logger_level::Info,
+                        "Player entered trigger!"
+                    );
+
+                    if (testSoundId != 0 &&
+                        !audioService.play(testSoundId)) {
+                        logMessage(
+                            logger_level::Warning,
+                            "Failed to play trigger sound"
+                        );
+                    }
+                }
+
+                // 7. Render the current Scene.
+                renderEngineFrame(sceneManager);
+
+                // 8. Handle save/reload at the frame boundary.
+
+                // F5: Save the current Scene.
+                if (wasKeyPressed(Key::F5)) {
+                    try {
+                        sceneSerializer.save(
+                            sceneManager.getActiveScene(),
+                            savedScenePath,
+                            getPlatformAssetManager()
+                        );
+
+                        logMessage(
+                            logger_level::Info,
+                            "Scene saved to: " + savedScenePath.string()
+                        );
+
+                    } catch (const std::exception& e) {
+                        logMessage(
+                            logger_level::Error,
+                            std::string("Failed to save Scene: ") + e.what()
+                        );
+                    }
+                }
+
+                // F9: Reload the saved Scene.
+                if (wasKeyPressed(Key::F9)) {
+                    try {
+                        if (!std::filesystem::exists(savedScenePath)) {
+                            logMessage(
+                                logger_level::Warning,
+                                "No saved Scene found. Press F5 first."
+                            );
+                        } else {
+                            // Fully load the replacement before activating it.
+                            auto newScene = sceneSerializer.load(
+                                savedScenePath,
+                                getPlatformAssetManager()
+                            );
+
+                            // Replace the Scene at the frame boundary.
+                            sceneManager.setActiveScene(std::move(newScene));
+
+                            // Forget overlaps belonging to the old Scene.
+                            wasOverlapping = false;
+
+                            logMessage(
+                                logger_level::Info,
+                                "Scene reloaded successfully!"
+                            );
+                        }
+
+                    } catch (const std::exception& e) {
+                        // The existing Scene stays active if loading fails.
+                        logMessage(
+                            logger_level::Error,
+                            std::string("Failed to reload Scene: ") + e.what()
+                        );
+                    }
+                }
+
+                prev_time = current_time;
             }
-
-            //  Update Engine State
-            delta_time = (current_time - prev_time) / 1000.0f;
-
-            sceneManager.update(delta_time);
-
-            //  Render Engine Frame
-            renderEngineFrame(sceneManager);
-
-            prev_time = current_time;
         }
+
+        // Engine systems are destroyed before SDL shuts down.
+
+    } catch (const std::exception& e) {
+        logMessage(
+            logger_level::Error,
+            std::string("Engine error: ") + e.what()
+        );
+    } catch (...) {
+        logMessage(
+            logger_level::Error,
+            "An unknown error occurred in the engine"
+        );
     }
-    // Shutdown system
+
     shutdownPlatform();
 }

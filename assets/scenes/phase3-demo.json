@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "name": "Phase 3 Demo",
+  "entities": [
+    {
+      "transform": { "x": 100, "y": 150, "width": 50, "height": 50 },
+      "sprite": { "texture": "test.bmp" }
+    },
+    {
+      "transform": { "x": 200, "y": 300, "width": 50, "height": 50 },
+      "sprite": { "texture": "test.bmp" },
+      "collider" : {"offsetX": 0, "offsetY": 0, "width":50, "height":50, "enabled": true}
+    },
+    {
+      "transform": { "x": 300, "y": 150, "width": 32, "height": 32 },
+      "sprite": { "texture": "anim_sheet.bmp" },
+      "animation": {
+        "frames": [
+          { "x": 0, "y": 0, "w": 32, "h": 32 },
+          { "x": 32, "y": 0, "w": 32, "h": 32 },
+          { "x": 64, "y": 0, "w": 32, "h": 32 },
+          { "x": 96, "y": 0, "w": 32, "h": 32 }
+        ],
+        "frameDuration": 0.25,
+        "loop": true
+      },
+      "collider" : {"offsetX": 0, "offsetY": 0, "width":32, "height":32, "enabled": true}
+    }
+  ]
+}

@@ -1,54 +1,123 @@
+
 #include "game.h"
+
+#include "entity.h"
+#include "logger.h"
+#include "platform.h"
+#include "scene.h"
+#include "scene_serializer.h"
+#include "asset_manager.h"
+#include "animationComponent.h"
+#include "transform.h"
 #include "input.h"
-#include "render_api.h"
 
-#include <array>
-#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
 
-namespace {
-constexpr std::array<float, 2> catStartPosition = {100.0f, 250.0f};
-constexpr std::array<float, 2> chefStartPosition = {600.0f, 250.0f};
-std::array<float, 2> catPosition = catStartPosition;
-std::array<float, 2> chefPosition = chefStartPosition;
+std::unique_ptr<Scene> createGameScene(AssetManager& assetManager) {
+    
+    std::filesystem::path assetRoot = getAssetRootPath();
 
-constexpr float objectSize = 100.0f;
-constexpr float movementSpeed = 200.0f;
+    std::filesystem::path demoPath = assetRoot / "scenes/phase3-demo.json";
 
-const Color catColor{0, 0, 255, 255};  // Blue
-const Color chefColor{255, 0, 0, 255}; // Red
+    SceneSerializer sceneSerializer;
 
-void updatePosition(std::array<float, 2>& position, float delta_time, Key left, Key right, Key up,
-                    Key down, const char* objectName) {
-    const float movementDistance = movementSpeed * delta_time;
+    return sceneSerializer.load(demoPath, assetManager);
 
-    if (isKeyHeld(left)) {
-        position[0] -= movementDistance;
-        std::cout << objectName << " left\n";
-    } else if (isKeyHeld(right)) {
-        position[0] += movementDistance;
-        std::cout << objectName << " right\n";
-    } else if (isKeyHeld(up)) {
-        position[1] -= movementDistance;
-        std::cout << objectName << " up\n";
-    } else if (isKeyHeld(down)) {
-        position[1] += movementDistance;
-        std::cout << objectName << " down\n";
+}
+
+bool handleCollisions(const std::vector<ColliderSystem::CollisionPair>& collisionPairs, Scene& scene, bool& wasOverlapping) {
+    const auto& entities = scene.getEntities();
+
+    // The demo's trigger is the second Entity.
+    if (entities.size() < 2) {
+        wasOverlapping = false;
+        return false;
     }
+
+    Entity* player = nullptr;
+
+    // Find the player by its AnimationComponent.
+    for (const auto& entity : entities) {
+        if (entity->getComponent<AnimationComponent>() != nullptr) {
+            player = entity.get();
+            break;
+        }
+    }
+
+    // No player means no valid trigger overlap.
+    if (player == nullptr) {
+        wasOverlapping = false;
+        return false;
+    }
+
+    Entity* trigger = entities[1].get();
+
+    if (player == trigger) {
+        wasOverlapping = false;
+        return false;
+    }
+
+    bool currentlyOverlapping = false;
+
+    // Find the collision between our player and trigger.
+    for (const auto& [entityAId, entityBId] : collisionPairs) {
+        if ((entityAId == player->getId() && entityBId == trigger->getId()) || (entityAId == trigger->getId() && entityBId == player->getId())) {
+            currentlyOverlapping = true;
+            break;
+        }
+    }
+
+    // A new entry happens only if they weren't overlapping before.
+    bool justEntered = currentlyOverlapping && !wasOverlapping;
+
+    // Remember the current state for the next frame.
+    wasOverlapping = currentlyOverlapping;
+
+    return justEntered;
 }
-} // namespace
-void initializeGame() {
-    catPosition = catStartPosition;
-    chefPosition = chefStartPosition;
-}
 
-void updateGame(float delta_time) {
-    updatePosition(catPosition, delta_time, Key::A, Key::D, Key::W, Key::S, "Cat");
 
-    updatePosition(chefPosition, delta_time, Key::Left, Key::Right, Key::Up, Key::Down, "Chef");
-}
+void updatePlayerMovement(Scene& scene, float deltaTime) {
+    constexpr float playerSpeed = 200.0f; // Pixels per second
 
-void renderGame() {
-    drawFilledRect(catColor, Bounds{catPosition[0], catPosition[1], objectSize, objectSize});
+    for (const auto& entity : scene.getEntities()) {
+        // Find the player (the animated Entity).
+        auto* animationComponent = entity->getComponent<AnimationComponent>();
 
-    drawFilledRect(chefColor, Bounds{chefPosition[0], chefPosition[1], objectSize, objectSize});
+        if (animationComponent == nullptr) {
+            continue;
+        }
+
+        Transform* transformComponent = entity->getComponent<Transform>();
+
+        if (transformComponent == nullptr) {
+            return;
+        }
+
+        float movement = playerSpeed * deltaTime;
+
+        // Left
+        if (isKeyHeld(Key::A)) {
+            transformComponent->x -= movement;
+        }
+
+        // Right
+        if (isKeyHeld(Key::D)) {
+            transformComponent->x += movement;
+        }
+
+        // Up
+        if (isKeyHeld(Key::W)) {
+            transformComponent->y -= movement;
+        }
+
+        // Down
+        if (isKeyHeld(Key::S)) {
+            transformComponent->y += movement;
+        }
+
+        break; // Only move the first animated Entity.
+    }
 }

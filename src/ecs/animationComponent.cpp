@@ -63,3 +63,15 @@ void AnimationComponent::pause() {
 void AnimationComponent::resume() {
     paused = false;
 }
+
+const std::vector<Bounds>& AnimationComponent::getFrames() const {
+    return frames;
+}
+
+float AnimationComponent::getDuration() const {
+    return duration;
+}
+
+bool AnimationComponent::getRepeat() const {
+    return repeat;
+}

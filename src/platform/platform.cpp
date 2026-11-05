@@ -3,21 +3,27 @@
 #include "render_api.h"
 #include "renderer.h"
 #include <SDL3/SDL.h>
-#include <array>
+#include "asset_manager.h"
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 
 SDL_Window* window = nullptr;
 std::unique_ptr<Renderer> renderer = nullptr;
+std::unique_ptr<AssetManager> assetManager = nullptr;
 textureHandle currentTexture = 0;
 
 bool initializePlatform() {
     // Initialize SDL Subsystems
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
         logMessage(logger_level::Error,
                    "SDL could not initialize! SDL_Error: " + std::string(SDL_GetError()));
+        SDL_Quit();
         return false;
+    }
+    if (!SDL_Init(SDL_INIT_AUDIO)) {
+        logMessage(logger_level::Warning,
+                   "SDL could not initialize! (continuing without sound) SDL_Error : " + std::string(SDL_GetError()));
     }
     logMessage(logger_level::Info, "SDL3 initialized successfully!");
 
@@ -46,14 +52,16 @@ bool initializePlatform() {
 
         currentTexture = renderer->LoadTexture(texturePath.c_str());
 
-    } catch (const std::runtime_error& e) {
+            
+        std::filesystem::path assetRoot = getAssetRootPath();
+        assetManager = std::make_unique<AssetManager>(*renderer, assetRoot);
+        
+    } catch (const std::exception& e) {
         logMessage(logger_level::Error, e.what());
-        renderer.reset();
-        SDL_DestroyWindow(window);
-        window = nullptr;
-        SDL_Quit();
+        shutdownPlatform();
         return false;
     }
+
 
     return true;
 }
@@ -82,8 +90,13 @@ void presentFrame() {
 }
 
 void shutdownPlatform() {
-    // Destroy the renderer first
+
+    //Destroy the asset manager first
+    assetManager.reset();
+
+    // Destroy the renderer 
     renderer.reset();
+
     // Destroy the window
     if (window != nullptr) {
         SDL_DestroyWindow(window);
@@ -114,4 +127,20 @@ textureHandle loadPlatformTexture(const char* filePath) {
 
     textureHandle newTexture = renderer->LoadTexture(filePath);
     return newTexture;
+}
+
+std::filesystem::path getAssetRootPath() {
+    const char* basePath = SDL_GetBasePath();
+    if (basePath == nullptr) {
+        logMessage(logger_level::Warning, std::string("Unable to fetch base path : ") + SDL_GetError());
+        return {};
+    }
+    return std::filesystem::path(basePath) / "assets";
+}
+
+AssetManager& getPlatformAssetManager() {
+    if (assetManager == nullptr) {
+        throw std::runtime_error("Platform asset manager is not initialized.");
+    }
+    return *assetManager;
 }

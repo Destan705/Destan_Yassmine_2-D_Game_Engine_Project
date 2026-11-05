@@ -19,4 +19,7 @@ class AnimationComponent : public Component {
     void pause();
     void resume();
     void restart();
+    const std::vector<Bounds>& getFrames() const;
+    float getDuration() const;
+    bool getRepeat() const;
 };

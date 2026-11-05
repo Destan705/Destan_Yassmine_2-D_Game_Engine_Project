@@ -32,6 +32,22 @@ class UpdateTracker : public Component {
     }
 };
 
+TEST(EntityTest, GetIdReturnsConstructorId) {
+
+    Entity entity(42);
+
+    EXPECT_EQ(entity.getId(), 42);
+}
+
+TEST(EntityTest, AddedComponentKnowsItsOwner) {
+
+    Entity entity(1);
+
+    FakeComponent& component = entity.addComponent<FakeComponent>();
+    
+    EXPECT_EQ(component.getOwner(), &entity);
+}
+
 TEST(EntityTest, UpdateReachesComponents) {
 
     Entity entity(1);
