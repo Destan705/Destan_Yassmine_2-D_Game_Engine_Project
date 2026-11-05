@@ -3,13 +3,14 @@
 #include "render_api.h"
 #include "renderer.h"
 #include <SDL3/SDL.h>
-#include <array>
+#include "asset_manager.h"
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 
 SDL_Window* window = nullptr;
 std::unique_ptr<Renderer> renderer = nullptr;
+std::unique_ptr<AssetManager> assetManager = nullptr;
 textureHandle currentTexture = 0;
 
 bool initializePlatform() {
@@ -51,11 +52,16 @@ bool initializePlatform() {
 
         currentTexture = renderer->LoadTexture(texturePath.c_str());
 
+            
+        std::filesystem::path assetRoot = getAssetRootPath();
+        assetManager = std::make_unique<AssetManager>(*renderer, assetRoot);
+        
     } catch (const std::exception& e) {
         logMessage(logger_level::Error, e.what());
         shutdownPlatform();
         return false;
     }
+
 
     return true;
 }
@@ -84,8 +90,13 @@ void presentFrame() {
 }
 
 void shutdownPlatform() {
-    // Destroy the renderer first
+
+    //Destroy the asset manager first
+    assetManager.reset();
+
+    // Destroy the renderer 
     renderer.reset();
+
     // Destroy the window
     if (window != nullptr) {
         SDL_DestroyWindow(window);
@@ -125,4 +136,11 @@ std::filesystem::path getAssetRootPath() {
         return {};
     }
     return std::filesystem::path(basePath) / "assets";
+}
+
+AssetManager& getPlatformAssetManager() {
+    if (assetManager == nullptr) {
+        throw std::runtime_error("Platform asset manager is not initialized.");
+    }
+    return *assetManager;
 }
