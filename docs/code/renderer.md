@@ -1,6 +1,6 @@
 # Renderer — Source Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec` · **Last checked:** 2026-10-31
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728` · **Last checked:** 2026-11-05
 >
 > **Files:** [`include/rendering/renderer.h`](../../include/rendering/renderer.h) and [`src/rendering/renderer.cpp`](../../src/rendering/renderer.cpp).
 
@@ -15,7 +15,7 @@
 | Is responsible for | Creating/destroying the `SDL_Renderer`, loading BMP textures, drawing |
 | Gets information from | An `SDL_Window*` (constructor); BMP files on disk; colours/rectangles from callers |
 | Changes | The window's back buffer (what will be shown); its texture list |
-| Used by | [platform](platform.md) (owns the one engine `Renderer`), [Sprite::render](sprite.md#sprite-render), [Scene::render](scene.md#scene-render) (passes it along), tests |
+| Used by | [platform](platform.md) (owns the one engine `Renderer`), [Sprite::render](sprite.md#sprite-render), [Scene::render](scene.md#scene-render) (passes it along), [AssetManager](asset-manager.md) (loads textures and asks for their size), tests |
 | Depends on | SDL3, [logger](logger.md), [render types](render-types.md) |
 
 ## Contents — jump to an explanation
@@ -30,6 +30,7 @@
 | `DrawFilledRect` | Draws a solid rectangle | [Function](#renderer-drawfilledrect) |
 | `LoadTexture` | Loads a BMP and returns a handle | [Function](#renderer-loadtexture) |
 | `DrawTexture` | Draws a texture, optionally only part of it | [Function](#renderer-drawtexture) |
+| `getTextureDimensions` | Width and height of a loaded texture | [Function](#renderer-gettexturedimensions) |
 
 ## Class: `Renderer`
 
@@ -197,7 +198,7 @@
 - Missing or non-BMP files throw `std::runtime_error`.
 - **No caching:** loading the same path twice creates two textures with two handles. The current demo loads `test.bmp` three times (once in `initializePlatform`, twice in `engine`).
 
-**Used by:** [`initializePlatform`](platform.md#initializeplatform), [`loadPlatformTexture`](platform.md#loadplatformtexture).
+**Used by:** [`initializePlatform`](platform.md#initializeplatform), [`AssetManager::loadTexture`](asset-manager.md#assetmanager-loadtexture), [`loadPlatformTexture`](platform.md#loadplatformtexture).
 
 **Related tests:** [LoadsValidBmpAndDrawsAtRequestedPositionAndSize](../tests/test-renderer.md#texturetest-loadsvalidbmpanddrawsatrequestedpositionandsize), [MissingFileThrowsRuntimeError](../tests/test-renderer.md#texturetest-missingfilethrowsruntimeerror), [InvalidBmpThrowsRuntimeError](../tests/test-renderer.md#texturetest-invalidbmpthrowsruntimeerror), [LoadedTexturesReceiveDistinctHandles](../tests/test-renderer.md#texturetest-loadedtexturesreceivedistincthandles), [LoadingSecondTexturePreservesFirstHandle](../tests/test-renderer.md#texturetest-loadingsecondtexturepreservesfirsthandle).
 
@@ -222,21 +223,21 @@
 
 1. **Handle check:** if the handle is `0` or too big, it logs `Invalid texture handle` (Warning) **only the first time ever** (using `hasWarned`), then returns.
 2. Looks up the texture. If the slot is `nullptr`, it returns silently.
-3. Copies `bounds` into an `SDL_FRect destRect`.
-4. **If `src` has a value:**
-    1. Asks SDL for the texture's width and height (`SDL_GetTextureSize`). The return value isn't checked.
-    2. Copies `src` into `srcRect`.
-    3. **Validates** it: `x ≥ 0`, `y ≥ 0`, `w > 0`, `h > 0`, and the rectangle fits inside the texture (`x + w ≤ texW`, `y + h ≤ texH`).
+3. Builds `SDL_FRect destRect` from `bounds`.
+4. **If `src` is empty:** it calls `SDL_RenderTexture(renderer, texture, nullptr, &destRect)`, drawing the whole image, and returns.
+5. **If `src` has a value:**
+    1. Asks SDL for the texture's width and height (`SDL_GetTextureSize`). If that fails, it logs `Could not get texture dimensions` (Warning) and returns.
+    2. **Validates** the rectangle: all four values finite, `x ≥ 0`, `y ≥ 0`, `w > 0`, `h > 0`, and it fits inside the texture (`x + w ≤ width`, `y + h ≤ height`).
+    3. If invalid, it logs `Invalid texture source rectangle` (Warning) and draws nothing.
     4. If valid, it calls `SDL_RenderTexture(renderer, texture, &srcRect, &destRect)`.
-    5. If invalid, it logs `Invalid source rectangle` (Warning) and draws nothing.
-5. **If `src` is empty:** it calls `SDL_RenderTexture(renderer, texture, nullptr, &destRect)`, drawing the whole image.
 
 **Calls other project functions**
 
 | Calls | Why this call is needed here | Where to find it |
 | --- | --- | --- |
 | `logMessage(Warning, "Invalid texture handle")` | Tell the developer a bad handle was used, once | [logMessage](logger.md#logmessage) |
-| `logMessage(Warning, "Invalid source rectangle")` | Report a frame rectangle outside the image | [logMessage](logger.md#logmessage) |
+| `logMessage(Warning, "Could not get texture dimensions")` | SDL couldn't report the size, so the frame can't be checked | [logMessage](logger.md#logmessage) |
+| `logMessage(Warning, "Invalid texture source rectangle")` | Report a frame rectangle outside the image | [logMessage](logger.md#logmessage) |
 
 **Side effects:** Draws; may log; may set `hasWarned`.
 
@@ -245,19 +246,49 @@
 - Never throws for bad input. It skips drawing instead.
 - The invalid-source warning is **not** rate-limited, so a bad animation frame logs **every frame**.
 - `hasWarned` is shared by all bad handles and never resets, so only the very first bad handle is reported.
+- NaN or infinite frame values are rejected (the `std::isfinite` checks).
 
 **Used by:** [`Sprite::render`](sprite.md#sprite-render), [`drawTexture`](platform.md#drawtexture).
 
-**Related tests:** [DrawingWithoutTextureLeavesScreenUnchanged](../tests/test-renderer.md#texturetest-drawingwithouttextureleavesscreenunchanged), [InvalidHandleDoesNotChangeScreen](../tests/test-renderer.md#texturetest-invalidhandledoesnotchangescreen), [DrawsTwoDifferentTexturesInSameFrame](../tests/test-renderer.md#texturetest-drawstwodifferenttexturesinsameframe). **No test covers the `src` path yet.**
+**Related tests:** [DrawingWithoutTextureLeavesScreenUnchanged](../tests/test-renderer.md#texturetest-drawingwithouttextureleavesscreenunchanged), [InvalidHandleDoesNotChangeScreen](../tests/test-renderer.md#texturetest-invalidhandledoesnotchangescreen), [DrawsTwoDifferentTexturesInSameFrame](../tests/test-renderer.md#texturetest-drawstwodifferenttexturesinsameframe). The `src` path is covered through animation: [FirstFrameDrawsOnlyItsSourceRectangle](../tests/test-animation-component.md#animationcomponentcontracttest-firstframedrawsonlyitssourcerectangle) and [AdvancingFrameChangesDisplayedSourceRectangle](../tests/test-animation-component.md#animationcomponentcontracttest-advancingframechangesdisplayedsourcerectangle). Out-of-range rectangles still have no direct test.
+
+<a id="renderer-gettexturedimensions"></a>
+### `std::pair<float,float> Renderer::getTextureDimensions(textureHandle textureHandle)`
+
+**What it does:** Returns the loaded texture's original `{width, height}` in pixels.
+
+**Why it exists:** [`AssetManager::getOriginalDimensions`](asset-manager.md#assetmanager-getoriginaldimensions) needs the size, but only `Renderer` holds the `SDL_Texture*`.
+
+| Name | Type | What the caller supplies | Rules |
+| --- | --- | --- | --- |
+| `textureHandle` | `textureHandle` | A handle from `LoadTexture` | `1 … textures.size()-1` |
+
+**Returns:** `std::pair<float,float>`: `first` = width, `second` = height.
+
+**What happens, in order**
+
+1. If the handle is `0` or too big, it throws `std::invalid_argument(" Invalid texture")`.
+2. Calls `SDL_GetTextureSize(texture, &w, &h)`.
+3. If SDL fails, it throws `std::runtime_error("Failed to get texture dimensions")`.
+4. Returns `{w, h}`.
+
+**No direct project-function calls.**
+
+**Edge cases:** it isn't `const`, so a `const Renderer&` can't call it. A valid-range handle whose slot is `nullptr` is passed to SDL, which fails, so it throws `runtime_error`.
+
+**Used by:** [`AssetManager::getOriginalDimensions`](asset-manager.md#assetmanager-getoriginaldimensions).
+
+**Related tests:** [RendererDimensionQueryMatchesTexture](../tests/test-asset-manager.md#assetmanagertest-rendererdimensionquerymatchestexture), [RendererDimensionQueryRejectsInvalidHandle](../tests/test-asset-manager.md#assetmanagertest-rendererdimensionqueryrejectsinvalidhandle).
 
 ## Dependencies and interactions
 
-**Includes:** `<SDL3/SDL.h>` (this header is where SDL enters the rendering layer), `<optional>`, `<vector>`, `rendertypes.h`; `logger.h` in the `.cpp`.
+**Includes:** `<SDL3/SDL.h>` (this header is where SDL enters the rendering layer), `<optional>`, `<utility>`, `<vector>`, `rendertypes.h`; `logger.h` and `<cmath>` in the `.cpp`.
 
 ```mermaid
 flowchart LR
     Sprite -->|DrawTexture handle, dest, src| Renderer
     Platform -->|owns unique_ptr| Renderer
+    AssetManager -->|LoadTexture, getTextureDimensions| Renderer
     Renderer -->|SDL_RenderTexture etc.| SDL[SDL3]
     Renderer -->|warnings| Logger
 ```
@@ -265,7 +296,7 @@ flowchart LR
 ## Things worth knowing
 
 - **Assumptions:** the window outlives the renderer, and SDL video is initialised.
-- **Surprising behavior:** relative texture paths depend on where you launch the program from (see [loadPlatformTexture](platform.md#loadplatformtexture)).
-- **Formatting:** `renderer.h`/`.cpp` don't currently follow `.clang-format`. CI doesn't check formatting, so this isn't caught automatically.
+- **Paths:** `LoadTexture` uses the path exactly as given. The game passes full paths built by the [AssetManager](asset-manager.md), so launch folder doesn't matter.
+- **Formatting:** `renderer.h`/`.cpp` were reformatted in Phase 3 and mostly follow `.clang-format`; `getTextureDimensions` is not yet formatted. CI doesn't check formatting.
 
 **Back to:** [Code index](index.md) · [Symbol index](symbol-index.md)

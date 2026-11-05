@@ -1,10 +1,10 @@
 # test_component_entity.cpp — Test Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec`
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728`
 >
 > **Test source:** [`tests/ecs/test_component_entity.cpp`](../../tests/ecs/test_component_entity.cpp)
 
-**In one sentence:** It checks the basic [`Entity`](../code/entity.md) contract: add, find, reject duplicates, and forward `update`.
+**In one sentence:** It checks the basic [`Entity`](../code/entity.md) contract: ID, add, find, owner, reject duplicates, and forward `update`.
 
 ## Setup and shared helpers
 
@@ -30,6 +30,16 @@ A second `addComponent<FakeComponent>()` throws `std::logic_error`.
 
 `getComponent` on an empty entity returns `nullptr`.
 
+<a id="entitytest-getidreturnsconstructorid"></a>
+### `EntityTest.GetIdReturnsConstructorId`
+
+`Entity(42).getId()` is 42 ([`getId`](../code/entity.md#entity-getid)).
+
+<a id="entitytest-addedcomponentknowsitsowner"></a>
+### `EntityTest.AddedComponentKnowsItsOwner`
+
+After `addComponent`, the component's [`getOwner()`](../code/component.md#component-getowner) is the entity.
+
 <a id="entitytest-updatereachescomponents"></a>
 ### `EntityTest.UpdateReachesComponents`
 
@@ -37,6 +47,6 @@ A second `addComponent<FakeComponent>()` throws `std::logic_error`.
 
 ## Coverage gaps
 
-No test for `render` forwarding at entity level (covered at scene level), the owner being set (covered in [Transform/Sprite tests](test-transform-sprite.md)), or the exact-type rule for subclasses.
+No test for `render` forwarding at entity level (covered at scene level) or the exact-type rule for subclasses.
 
 **Back to:** [Test index](index.md) · [Code index](../code/index.md)

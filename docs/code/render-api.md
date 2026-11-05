@@ -1,12 +1,12 @@
 # Render API (Phase 1) — Source Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec` · **Last checked:** 2026-10-31
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728` · **Last checked:** 2026-11-05
 >
 > **Files:** [`include/rendering/render_api.h`](../../include/rendering/render_api.h). **Implemented in** [`src/platform/platform.cpp`](../../src/platform/platform.cpp).
 
 **In one sentence:** Four free functions that let code draw without knowing about `Renderer` or SDL: begin a frame, draw a rectangle, draw the start-up texture, and present.
 
-**Why it exists:** It is the Phase 1 drawing interface for [`game.cpp`](game.md). It also lets `game_tests` swap in **fake** versions, so game logic can be tested without SDL.
+**Why it exists:** It was the Phase 1 drawing interface for the old cat/chef game (removed in Phase 3), and it let `game_tests` swap in **fake** versions. It is kept and still tested, but nothing in the engine uses it now.
 
 ## Contents
 
@@ -22,6 +22,6 @@ The full function explanations live on the [Platform page](platform.md), because
 ## Things worth knowing
 
 - **No include guard:** `render_api.h` has no `#pragma once`. Including it twice in one file would be harmless here (it only has declarations), but it's inconsistent with the other headers.
-- **Current status:** the Phase 2/3 engine loop draws through [`renderPlatform`](platform.md#renderplatform) instead. This API is used only by [`renderGame`](game.md#rendergame) and tests.
+- **Current status:** the Phase 2/3 engine loop draws through [`renderPlatform`](platform.md#renderplatform) instead. This API is used only by tests ([CanRenderFrameThroughPublicRenderingApi](../tests/test-platform.md#platformtest-canrenderframethroughpublicrenderingapi)). It is a candidate for removal.
 
 **Back to:** [Code index](index.md) · [Symbol index](symbol-index.md)

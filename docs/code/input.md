@@ -1,6 +1,6 @@
 # Input — Source Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec` · **Last checked:** 2026-10-31
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728` · **Last checked:** 2026-11-05
 >
 > **Files:** [`include/platform/input.h`](../../include/platform/input.h) and [`src/platform/input.cpp`](../../src/platform/input.cpp).
 
@@ -15,7 +15,7 @@
 | Is responsible for | The SDL event pump, quit detection, keyboard state |
 | Gets information from | SDL's event queue and keyboard-state array |
 | Changes | Its own per-frame pressed/released arrays |
-| Used by | [engine](engine.md#engine), [game](game.md#updategame), tests |
+| Used by | [engine](engine.md#engine) (`processPlatformEvents`, `wasKeyPressed` for F5/F9), [game](game.md#updateplayermovement) (`isKeyHeld` for W/A/S/D), tests |
 | Depends on | SDL3 |
 
 ## Contents — jump to an explanation
@@ -96,7 +96,7 @@ All of these are file-level globals with external linkage (not `static` or in an
 
 **Calls:** [`toSDLScancode`](#tosdlscancode).
 
-**Errors:** If [`initializeInput`](#initializeinput) wasn't called, `keystate` is null and this crashes. **Used by:** [`updatePosition`](game.md#updateposition) (replaced by a fake in `game_tests`).
+**Errors:** If [`initializeInput`](#initializeinput) wasn't called, `keystate` is null and this crashes. **Used by:** [`updatePlayerMovement`](game.md#updateplayermovement) (W/A/S/D).
 
 <a id="waskeypressed"></a>
 ### `bool wasKeyPressed(Key key)`

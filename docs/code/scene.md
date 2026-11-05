@@ -1,6 +1,6 @@
 # Scene — Source Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec` · **Last checked:** 2026-10-31
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728` · **Last checked:** 2026-11-05
 >
 > **Files:** [`include/scene/scene.h`](../../include/scene/scene.h) and [`src/scene/scene.cpp`](../../src/scene/scene.cpp).
 
@@ -18,6 +18,7 @@
 | `createEntity()` | Make a new entity | [Function](#scene-createentity) |
 | `update(float)` | Update all entities | [Function](#scene-update) |
 | `render(Renderer&)` | Draw all entities | [Function](#scene-render) |
+| `getEntities()` | Read-only view of the entities | [Function](#scene-getentities) |
 
 ## Class: `Scene`
 
@@ -43,9 +44,9 @@
 Copies `name` into `sceneName` (assigned in the body, not in an initializer list). **No direct project-function calls.**
 
 <a id="scene-getscenename"></a>
-### `std::string Scene::getSceneName()`
+### `std::string Scene::getSceneName() const`
 
-Returns a **copy** of the name. It isn't marked `const`, so it can't be called on a `const Scene`. **Used by:** [`SceneManager::setActiveScene`](scene-manager.md#scenemanager-setactivescene).
+Returns a **copy** of the name. It's `const` (since Phase 3), so it works on a `const Scene`. **Used by:** [`SceneManager::setActiveScene`](scene-manager.md#scenemanager-setactivescene), [`SceneSerializer::save`](scene-serializer.md#sceneserializer-save).
 
 <a id="scene-createentity"></a>
 ### `Entity& Scene::createEntity()`
@@ -66,10 +67,19 @@ Calls [`Entity::update`](entity.md#entity-update) on each entity in creation ord
 
 Calls [`Entity::render`](entity.md#entity-render) on each entity in creation order. **Later entities draw on top.** **Called by:** [`renderPlatform`](platform.md#renderplatform). **Related tests:** [RendersEntitiesInInsertionOrder](../tests/test-scene.md#scenetest-rendersentitiesininsertionorder).
 
+<a id="scene-getentities"></a>
+### `const std::vector<std::unique_ptr<Entity>>& Scene::getEntities() const`
+
+**What it does:** Returns a **const reference** to the entity list, so callers can look at every entity in creation order without copying or owning them.
+
+**Why it exists:** [`SceneSerializer::save`](scene-serializer.md#sceneserializer-save) needs to walk a `const Scene`, and [`ColliderSystem::detectCollisions`](collider-system.md#collidersystem-detectcollisions) needs every entity each frame.
+
+**Rules:** the vector can't be changed through this reference (no add/remove), but the `Entity` objects themselves are not `const` (the pointer is const, not what it points to). The reference is valid only while the scene lives. **No direct project-function calls.**
+
 ## Things worth knowing
 
 - There's no way to remove an entity or look one up by ID yet.
 - `scene.h` uses `Renderer&` without declaring it; it gets the forward declaration from `component.h` via `entity.h`.
-- There's no read-only (`const`) way to walk the entities yet. The serializer ticket needs one ("agreed read-only traversal").
+- Entity IDs are **not saved** by the serializer; a loaded scene numbers its entities again from 1.
 
 **Back to:** [Code index](index.md) · [Symbol index](symbol-index.md)

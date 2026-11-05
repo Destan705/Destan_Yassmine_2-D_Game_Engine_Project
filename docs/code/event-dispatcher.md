@@ -1,6 +1,6 @@
 # EventDispatcher — Source Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec` · **Last checked:** 2026-10-31
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728` · **Last checked:** 2026-11-05
 >
 > **Files:** [`include/events/event_dispatcher.h`](../../include/events/event_dispatcher.h) and [`src/events/event_dispatcher.cpp`](../../src/events/event_dispatcher.cpp).
 

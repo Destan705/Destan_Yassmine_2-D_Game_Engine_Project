@@ -1,6 +1,6 @@
 # Sprite — Source Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec` · **Last checked:** 2026-10-31
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728` · **Last checked:** 2026-11-05
 >
 > **Files:** [`include/ecs/sprite.h`](../../include/ecs/sprite.h) and [`src/ecs/sprite.cpp`](../../src/ecs/sprite.cpp).
 
@@ -15,7 +15,7 @@
 | Is responsible for | Drawing one texture per frame |
 | Gets information from | Its owner's `Transform` (destination) and its own `src` (source crop) |
 | Changes | Nothing except the screen; `src` changes via `sourceSet` |
-| Used by | [Entity::render](entity.md#entity-render); [AnimationComponent](animation-component.md) sets its source |
+| Used by | [Entity::render](entity.md#entity-render); [AnimationComponent](animation-component.md) sets its source; [SceneSerializer::save](scene-serializer.md#sceneserializer-save) reads its handle |
 | Depends on | [Component](component.md), [Transform](transform.md), [Renderer](renderer.md), [render types](render-types.md) |
 
 ## Contents
@@ -26,6 +26,7 @@
 | `Sprite(textureHandle)` | Create with a texture | [Function](#sprite-sprite) |
 | `render(Renderer&)` | Draw it | [Function](#sprite-render) |
 | `sourceSet(optional<Bounds>)` | Choose which part of the image to draw | [Function](#sprite-sourceset) |
+| `getTexture()` | Read the texture handle | [Function](#sprite-gettexture) |
 
 ## Class: `Sprite`
 
@@ -82,10 +83,15 @@ Stores `handle` in `currentTexture`. It isn't validated here; a bad handle is ca
 
 **Validation:** none here. [`DrawTexture`](renderer.md#renderer-drawtexture) rejects rectangles outside the image.
 
+<a id="sprite-gettexture"></a>
+### `textureHandle Sprite::getTexture() const`
+
+Returns `currentTexture`. **Why it exists:** [`SceneSerializer::save`](scene-serializer.md#sceneserializer-save) turns the handle back into a path with [`AssetManager::getPath`](asset-manager.md#assetmanager-getpath), because files store paths, never handles. **No direct project-function calls.**
+
 ## Things worth knowing
 
 - **Low coupling:** `Sprite` doesn't know about animation. The dependency goes one way only (`AnimationComponent` → `Sprite`).
-- `sprite.h`/`.cpp` aren't formatted with `.clang-format` yet.
-- **No test yet** covers `sourceSet` or drawing with a source rectangle.
+- `sprite.cpp` isn't fully formatted with `.clang-format` yet.
+- **Tests:** cropped drawing through a sprite is checked pixel-by-pixel in [test_animation_component](../tests/test-animation-component.md); `getTexture` is used throughout [test_scene_serializer](../tests/test-scene-serializer.md).
 
 **Back to:** [Code index](index.md) · [Symbol index](symbol-index.md)

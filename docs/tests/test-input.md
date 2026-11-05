@@ -1,6 +1,6 @@
 # test_input.cpp — Test Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec`
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728`
 >
 > **Test source:** [`tests/platform/test_input.cpp`](../../tests/platform/test_input.cpp)
 

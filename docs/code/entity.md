@@ -1,6 +1,6 @@
 # Entity — Source Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec` · **Last checked:** 2026-10-31
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728` · **Last checked:** 2026-11-05
 >
 > **Files:** [`include/ecs/entity.h`](../../include/ecs/entity.h) and [`src/ecs/entity.cpp`](../../src/ecs/entity.cpp).
 

@@ -1,6 +1,6 @@
 # test_engine.cpp — Test Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec`
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728`
 >
 > **Test source:** [`tests/core/test_engine.cpp`](../../tests/core/test_engine.cpp)
 
@@ -41,7 +41,7 @@ Video driver `nonexistent-driver`. `engine()` returns (doesn't hang), and `SDL_W
 <a id="enginetest-whenquiteventoccursenginestopsandcleansup"></a>
 ### `EngineTest.WhenQuitEventOccursEngineStopsAndCleansUp`
 
-Queues a quit event, then runs `engine()`. The first [`processPlatformEvents`](../code/input.md#processplatformevents) returns false, the loop ends and SDL is shut down. **This also runs the full demo scene set-up**, including loading `assets/test.bmp` and `assets/anim_sheet.bmp`.
+Queues a quit event, then runs `engine()`. The first [`processPlatformEvents`](../code/input.md#processplatformevents) returns false, the loop ends and SDL is shut down. **This also runs the full start-up**: the platform AssetManager, the `AudioService` (dummy driver), loading `audio/test.wav`, and [`createGameScene`](../code/game.md#creategamescene), which loads `assets/scenes/phase3-demo.json` from the test executable's `assets/` copy.
 
 <a id="enginetest-whenwindowcreationfailsenginereturnsandcleansup"></a>
 ### `EngineTest.WhenWindowCreationFailsEngineReturnsAndCleansUp`
@@ -72,6 +72,7 @@ Runs init-events, quit, `engine()` twice. Both runs end cleanly, which catches l
 ## Coverage gaps
 
 - Nothing checks what is **drawn** or that the demo entities exist.
-- No test for an asset that is missing during scene set-up (currently an uncaught exception).
+- No test for an asset that is missing during scene set-up (now caught and logged by `engine()`, but not checked).
+- No test for player movement, the trigger sound, or F5/F9 save/reload.
 
 **Back to:** [Test index](index.md) · [Code index](../code/index.md)

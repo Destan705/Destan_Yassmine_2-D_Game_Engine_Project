@@ -1,6 +1,6 @@
 # test_logger.cpp — Test Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec`
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728`
 >
 > **Test source:** [`tests/platform/test_logger.cpp`](../../tests/platform/test_logger.cpp)
 

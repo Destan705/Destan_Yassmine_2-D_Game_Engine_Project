@@ -1,6 +1,6 @@
 # test_renderer.cpp — Test Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec`
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728`
 >
 > **Test source:** [`tests/rendering/test_renderer.cpp`](../../tests/rendering/test_renderer.cpp)
 

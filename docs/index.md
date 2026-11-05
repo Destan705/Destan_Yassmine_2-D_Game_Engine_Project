@@ -2,7 +2,7 @@
 
 **A guided tour of the code: what it does, how its parts connect, and where to find everything.**
 
-> **Status:** Verified against `feature/phase3-animation` @ `6749cec` (2026-10-31). Covers Phase 2 plus Phase 3 source rectangles and animation. Collider, sound, AssetManager and the scene serializer **are not implemented yet** and aren't described as if they were.
+> **Status:** Verified against `phase3` @ `ca2b728` (2026-11-05). Covers all of Phase 3: source rectangles, animation, AssetManager, scene serializer, collision, audio, and the integrated demo (JSON loading, player movement, trigger sound, F5/F9). 200 tests, all in `ctest`.
 
 ## Choose where to start
 
@@ -18,25 +18,50 @@
 | Learn project terms | [Glossary](glossary.md) |
 | Add or change documentation | [Documentation guide](contributing.md) |
 
-## Quick how-tos (using real API names)
+## Running the demo
 
-**Add a textured object:**
-
-```cpp
-Entity& e = sceneManager.getActiveScene().createEntity();
-Transform& t = e.addComponent<Transform>();
-t.x = 100; t.y = 150; t.width = 50; t.height = 50;
-e.addComponent<Sprite>(loadPlatformTexture("assets/test.bmp"));
+```sh
+cmake --build build && ./build/bin/game_engine
 ```
 
-**Make it animated** (sprite sheet with 4 frames of 32×32, 0.25 s each, looping):
+**W/A/S/D** move the animated player · walk into the second square (the **trigger**) to hear the sound · **F5** saves the scene · **F9** reloads the save. The scene comes from `assets/scenes/phase3-demo.json`.
+
+## Quick how-tos (using real API names)
+
+**Add an object:** add an entity to `assets/scenes/phase3-demo.json` (no C++ needed), then rebuild so the copy next to the executable updates:
+
+```json
+{
+  "transform": { "x": 500, "y": 100, "width": 40, "height": 40 },
+  "sprite":    { "texture": "test.bmp" },
+  "collider":  { "offsetX": 0, "offsetY": 0, "width": 40, "height": 40, "enabled": true }
+}
+```
+
+**The same in C++:**
+
+```cpp
+Entity& e = scene.createEntity();
+Transform& t = e.addComponent<Transform>();
+t.x = 500; t.y = 100; t.width = 40; t.height = 40;
+e.addComponent<Sprite>(getPlatformAssetManager().loadTexture("test.bmp"));
+e.addComponent<ColliderComponent>(0.0f, 0.0f, 40.0f, 40.0f);
+```
+
+**Animate it** (sprite sheet with 4 frames of 32×32, 0.25 s each, looping):
 
 ```cpp
 std::vector<Bounds> frames = {{0,0,32,32}, {32,0,32,32}, {64,0,32,32}, {96,0,32,32}};
 e.addComponent<AnimationComponent>(frames, 0.25f, true);
 ```
 
-See [AnimationComponent](code/animation-component.md) and [Sprite](code/sprite.md).
+**Load a scene safely** (the old scene stays if loading throws):
+
+```cpp
+sceneManager.setActiveScene(serializer.load(path, getPlatformAssetManager()));
+```
+
+See [the demo scene](code/game.md#the-demo-scene), [SceneSerializer](code/scene-serializer.md#file-format), [ColliderComponent](code/collider-component.md) and [AudioService](code/audio-service.md).
 
 ## How to read a code page
 
@@ -54,15 +79,18 @@ These are **observations**, not changes. The code wasn't modified.
 
 | # | Issue | Where |
 | --- | --- | --- |
-| 1 | `game_tests` isn't registered with CTest, so its 4 tests never run in `ctest` or CI | [test_game](tests/test-game.md) |
-| 2 | `loadPlatformTexture` uses paths relative to the working directory, but `initializePlatform` uses the executable folder, so the demo only works when launched from the repo root | [platform](code/platform.md#loadplatformtexture) |
-| 3 | A missing asset during scene set-up throws out of `engine()` without `shutdownPlatform()` | [engine](code/engine.md#engine) |
-| 4 | No tests for `AnimationComponent` or for `DrawTexture` with a source rectangle | [test index](tests/index.md) |
-| 5 | "Invalid source rectangle" warning logs every frame (no warn-once) | [Renderer](code/renderer.md#renderer-drawtexture) |
-| 6 | `engine.h`, `game.h`, `input.h`, `render_api.h` lack `#pragma once`; `entity.h` uses `std::logic_error` without `<stdexcept>` | code pages |
-| 7 | `typeid(*component)` compiler warning on every build | [Entity](code/entity.md#entity-getcomponent) |
-| 8 | CI doesn't check `clang-format`; `renderer.*` and `sprite.*` aren't formatted | [project files](project-files.md) |
-| 9 | `.DS_Store` is committed | [project files](project-files.md) |
+| 1 | Player and trigger are found **by convention** (first animated entity; entity number 2), so reordering the JSON silently changes who is who | [game](code/game.md#the-demo-scene) |
+| 2 | Diagonal movement is about 1.41× faster (W+D aren't normalised) | [game](code/game.md#updateplayermovement) |
+| 3 | No tests for `handleCollisions`, `updatePlayerMovement`, F5/F9 or `getPlatformAssetManager` | [test index](tests/index.md#known-gaps-from-reading-the-code) |
+| 4 | "Invalid texture source rectangle" warning logs every frame (no warn-once) | [Renderer](code/renderer.md#renderer-drawtexture) |
+| 5 | `engine.h`, `input.h`, `render_api.h` lack `#pragma once`; `entity.h` uses `std::logic_error` without `<stdexcept>` | code pages |
+| 6 | `typeid(*component)` warning on every clang build | [Entity](code/entity.md#entity-getcomponent) |
+| 7 | CI doesn't check `clang-format`; some Phase 3 files aren't formatted | [project files](project-files.md) |
+| 8 | `.DS_Store` is committed | [project files](project-files.md) |
+| 9 | `readFiniteNumber` repeats a check `readNumber` already does | [SceneSerializer](code/scene-serializer.md#helpers) |
+| 10 | The old render API and `loadPlatformTexture` are unused by the game | [Render API](code/render-api.md) |
+
+**Fixed since the last check (`6749cec`):** `game_tests` no longer exists (so nothing is silently skipped); `engine()` now catches exceptions and always shuts down; `AnimationComponent` and source rectangles now have tests; the demo now loads from JSON through the AssetManager, so it runs from any folder; the trigger actually fires.
 
 ## The main idea
 

@@ -1,6 +1,6 @@
 # test_transform_sprite.cpp — Test Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec`
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728`
 >
 > **Test source:** [`tests/ecs/test_transform_sprite.cpp`](../../tests/ecs/test_transform_sprite.cpp)
 

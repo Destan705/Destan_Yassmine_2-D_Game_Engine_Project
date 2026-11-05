@@ -1,6 +1,6 @@
 # AnimationComponent — Source Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec` · **Last checked:** 2026-10-31
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728` · **Last checked:** 2026-11-05
 >
 > **Files:** [`include/ecs/animationComponent.h`](../../include/ecs/animationComponent.h) and [`src/ecs/animationComponent.cpp`](../../src/ecs/animationComponent.cpp).
 
@@ -15,7 +15,7 @@
 | Is responsible for | Animation timing and picking the current frame |
 | Gets information from | `dt` from [Entity::update](entity.md#entity-update); its own frame list |
 | Changes | Its timing state; the sibling Sprite's source rectangle |
-| Used by | [engine demo](engine.md#engine) (entity 3) |
+| Used by | [createGameScene](game.md#creategamescene) (entity 3), [SceneSerializer](scene-serializer.md) (creates it on load, reads its getters on save) |
 | Depends on | [Component](component.md), [Entity](entity.md), [Sprite](sprite.md), [Bounds](render-types.md#struct-bounds) |
 
 ## Contents
@@ -27,6 +27,7 @@
 | `update(float)` | Advance time and choose a frame | [Function](#animationcomponent-update) |
 | `pause()` / `resume()` | Freeze / unfreeze | [pause](#animationcomponent-pause) · [resume](#animationcomponent-resume) |
 | `restart()` | Back to frame 0 | [Function](#animationcomponent-restart) |
+| `getFrames()` / `getDuration()` / `getRepeat()` | Read the configuration (for saving) | [getFrames](#animationcomponent-getframes) · [getDuration](#animationcomponent-getduration) · [getRepeat](#animationcomponent-getrepeat) |
 
 ## How the timing works (plain English)
 
@@ -139,6 +140,23 @@ Sets `paused = false`. It continues from where it stopped, with no jump. **No di
 
 Sets `currentFrame = 0` and `elapsed = 0`. **It doesn't change `paused`.** The Sprite only receives frame 0 on the **next** `update` (and not while paused). **No direct project-function calls.**
 
+<a id="animationcomponent-getframes"></a>
+### `const std::vector<Bounds>& AnimationComponent::getFrames() const`
+
+Returns a **const reference** to `frames` (no copy). Valid while the component lives.
+
+<a id="animationcomponent-getduration"></a>
+### `float AnimationComponent::getDuration() const`
+
+Returns `duration` (seconds per frame).
+
+<a id="animationcomponent-getrepeat"></a>
+### `bool AnimationComponent::getRepeat() const`
+
+Returns `repeat` (loop or hold).
+
+**Why the three getters exist:** [`SceneSerializer::save`](scene-serializer.md#sceneserializer-save) writes the **configuration** (frames, `frameDuration`, `loop`). There are deliberately no getters for `currentFrame`, `elapsed` or `paused`: that's runtime state and isn't saved. **No direct project-function calls. Related test:** [ExposesStableConfigurationForSerialization](../tests/test-animation-component.md#animationcomponentvalidationtest-exposesstableconfigurationforserialization).
+
 ## Dependencies and interactions
 
 ```mermaid
@@ -155,6 +173,6 @@ The dependency goes **one way** (AnimationComponent → Sprite). `Sprite` doesn'
 
 - **Shared textures:** two entities can use the same texture handle and still animate independently, because each has its own `AnimationComponent` state.
 - **Before the first `update`:** the Sprite's `src` is empty, so the **whole** sheet would be drawn. The engine updates before rendering, so you never see this.
-- **Tests:** no `AnimationComponent` tests exist yet. Timing tests are assigned to Yassmine (team convention: the other developer writes the tests).
+- **Tests:** [test_animation_component](../tests/test-animation-component.md) checks validation, and draws real pixels to prove the right frame appears (first frame, advance, pause/resume, loop, hold, restart).
 
 **Back to:** [Code index](index.md) · [Symbol index](symbol-index.md)

@@ -41,7 +41,7 @@ nav:
       - Symbol Index: code/symbol-index.md
       - Core:
           - Engine loop & main: code/engine.md
-          - Game (Phase 1): code/game.md
+          - Game (demo scene & collisions): code/game.md
       - Platform:
           - Platform: code/platform.md
           - Input: code/input.md
@@ -56,6 +56,13 @@ nav:
           - Transform: code/transform.md
           - Sprite: code/sprite.md
           - AnimationComponent: code/animation-component.md
+          - ColliderComponent: code/collider-component.md
+      - Systems:
+          - ColliderSystem: code/collider-system.md
+          - AudioService: code/audio-service.md
+      - Assets & Data:
+          - AssetManager: code/asset-manager.md
+          - SceneSerializer: code/scene-serializer.md
       - Events:
           - EventDispatcher: code/event-dispatcher.md
       - Scene:
@@ -66,13 +73,18 @@ nav:
       - Renderer & Texture: tests/test-renderer.md
       - Platform: tests/test-platform.md
       - Engine: tests/test-engine.md
-      - Game: tests/test-game.md
       - Input: tests/test-input.md
       - Logger: tests/test-logger.md
       - Entity & Component: tests/test-component-entity.md
       - Transform & Sprite: tests/test-transform-sprite.md
+      - AnimationComponent: tests/test-animation-component.md
+      - Collision: tests/test-collision.md
+      - AssetManager: tests/test-asset-manager.md
+      - AudioService: tests/test-audio-service.md
       - EventDispatcher: tests/test-event-dispatcher.md
       - Scene & SceneManager: tests/test-scene.md
+      - SceneSerializer: tests/test-scene-serializer.md
+      - SceneSerializer contract: tests/test-scene-serializer-contract.md
   - Other Files: project-files.md
   - Glossary: glossary.md
   - Keeping Docs Updated: contributing.md

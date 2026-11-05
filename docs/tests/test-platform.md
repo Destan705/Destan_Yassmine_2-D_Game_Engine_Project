@@ -1,6 +1,6 @@
 # test_platform.cpp — Test Reference
 
-> **Coverage:** Verified · **Source revision:** `feature/phase3-animation` @ `6749cec`
+> **Coverage:** Verified · **Source revision:** `phase3` @ `ca2b728`
 >
 > **Test source:** [`tests/platform/test_platform.cpp`](../../tests/platform/test_platform.cpp)
 
@@ -77,7 +77,7 @@ Render driver = `missing-test-renderer`, so the result is `false` and SDL is sto
 
 ## Coverage gaps
 
-- No test for [`renderPlatform`](../code/platform.md#renderplatform) or [`loadPlatformTexture`](../code/platform.md#loadplatformtexture) directly (they're exercised only through `EngineTest`).
+- No test for [`renderPlatform`](../code/platform.md#renderplatform), [`loadPlatformTexture`](../code/platform.md#loadplatformtexture) or [`getPlatformAssetManager`](../code/platform.md#getplatformassetmanager) directly (the first is exercised only through `EngineTest`).
 - No test that `renderPlatform` warns when the renderer is null.
 
 **Back to:** [Test index](index.md) · [Code index](../code/index.md)
