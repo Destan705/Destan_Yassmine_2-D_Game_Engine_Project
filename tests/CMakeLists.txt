@@ -11,6 +11,11 @@ add_executable(engine_tests
     ecs/test_component_entity.cpp
     ecs/test_transform_sprite.cpp
     ecs/test_animation_component.cpp
+    ecs/test_collision.cpp
+
+    assets/test_asset_manager.cpp
+
+    audio/test_audio_service.cpp
 
     events/test_event_dispatcher.cpp
 
