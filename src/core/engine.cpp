@@ -78,6 +78,9 @@ void engine() {
                 // Calculate delta time.
                 delta_time = (current_time - prev_time) / 1000.0f;
 
+                // Apply player movement from keyboard input
+                updatePlayerMovement(sceneManager.getActiveScene(), delta_time);
+
                 // Update the Scene and its Components.
                 sceneManager.update(delta_time);
 

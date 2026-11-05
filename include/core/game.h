@@ -18,3 +18,6 @@ std::unique_ptr<Scene> createGameScene(AssetManager& assetManager);
 void handleCollisions(
     const std::vector<ColliderSystem::CollisionPair>& collisionPairs
 );
+
+
+void updatePlayerMovement(Scene& scene, float deltaTime);

@@ -7,6 +7,9 @@
 #include "scene.h"
 #include "scene_serializer.h"
 #include "asset_manager.h"
+#include "animationComponent.h"
+#include "transform.h"
+#include "input.h"
 
 #include <memory>
 #include <string>
@@ -41,5 +44,49 @@ void handleCollisions(
                 " and Entity " +
                 std::to_string(entityBId)
         );
+    }
+}
+
+
+void updatePlayerMovement(Scene& scene, float deltaTime) {
+    constexpr float playerSpeed = 200.0f; // Pixels per second
+
+    for (const auto& entity : scene.getEntities()) {
+        // Find the player (the animated Entity).
+        auto* animationComponent = entity->getComponent<AnimationComponent>();
+
+        if (animationComponent == nullptr) {
+            continue;
+        }
+
+        Transform* transformComponent = entity->getComponent<Transform>();
+
+        if (transformComponent == nullptr) {
+            return;
+        }
+
+        float movement = playerSpeed * deltaTime;
+
+        // Left
+        if (isKeyHeld(Key::A)) {
+            transformComponent->x -= movement;
+        }
+
+        // Right
+        if (isKeyHeld(Key::D)) {
+            transformComponent->x += movement;
+        }
+
+        // Up
+        if (isKeyHeld(Key::W)) {
+            transformComponent->y -= movement;
+        }
+
+        // Down
+        if (isKeyHeld(Key::S)) {
+            transformComponent->y += movement;
+        }
+
+        break; // Only move the first animated Entity.
     }
 }
