@@ -3,12 +3,13 @@
 
 #include "animation_component.h"
 #include "collider_component.h"
+#include "transform_component.h"
 #include "entity.h"
 #include "logger.h"
 #include "platform.h"
 #include "scene.h"
-#include "sprite_component.h"
-#include "transform_component.h"
+#include "scene_serializer.h"
+#include "input.h"
 
 #include <memory>
 #include <string>
@@ -89,7 +90,7 @@ void updatePlayerMovement(Scene& scene, float deltaTime) {
             continue;
         }
 
-        Transform* transformComponent = entity->getComponent<Transform>();
+        TransformComponent* transformComponent = entity->getComponent<TransformComponent>();
 
         if (transformComponent == nullptr) {
             return;
