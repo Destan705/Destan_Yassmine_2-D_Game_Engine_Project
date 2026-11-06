@@ -1,5 +1,18 @@
 cmake_minimum_required(VERSION 3.20)
 project(game_engine VERSION 0.0.0 LANGUAGES CXX)
+
+set(ENGINE_INCLUDE_DIRS
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include/core
+    ${PROJECT_SOURCE_DIR}/include/platform
+    ${PROJECT_SOURCE_DIR}/include/rendering
+    ${PROJECT_SOURCE_DIR}/include/ecs
+    ${PROJECT_SOURCE_DIR}/include/scene
+    ${PROJECT_SOURCE_DIR}/include/events
+    ${PROJECT_SOURCE_DIR}/include/assets
+    ${PROJECT_SOURCE_DIR}/include/audio
+)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(FetchContent)
@@ -16,6 +29,13 @@ FetchContent_Declare(
     GIT_TAG v1.15.2
 )
 FetchContent_MakeAvailable(googletest)
+
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.3
+)
+FetchContent_MakeAvailable(nlohmann_json)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_CXX_STANDARD 20)

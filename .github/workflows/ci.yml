@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, phase1, phase2, phase3]
 
 jobs:
   build-and-test:
@@ -24,7 +24,8 @@ jobs:
             libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev \
             libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev \
             libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev \
-            libudev-dev fcitx-libs-dev
+            libudev-dev fcitx-libs-dev \
+            xvfb xauth libgl1-mesa-dri
 
       - name: Configure
         run: cmake -B build
@@ -33,10 +34,13 @@ jobs:
         run: cmake --build build
 
       - name: Run static analysis
-
         run: |
           find src -name '*.cpp' -print0 |
           xargs -0 clang-tidy -p build --header-filter="^${GITHUB_WORKSPACE}/(src|include|tests)/"
 
       - name: Run tests
-        run: ctest --test-dir build --output-on-failure
+        env:
+          SDL_VIDEO_DRIVER: x11
+          SDL_AUDIO_DRIVER: dummy
+          LIBGL_ALWAYS_SOFTWARE: "1"
+        run: xvfb-run -a -s "-screen 0 1024x768x24 +extension GLX" ctest --test-dir build --output-on-failure
