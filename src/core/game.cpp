@@ -6,7 +6,6 @@
 #include "entity.h"
 #include "logger.h"
 #include "platform.h"
-#include "rendertypes.h"
 #include "scene.h"
 #include "sprite_component.h"
 #include "transform_component.h"
@@ -15,80 +14,109 @@
 #include <string>
 #include <vector>
 
-std::unique_ptr<Scene> createGameScene() {
-    auto scene = std::make_unique<Scene>("Current Scene");
+std::unique_ptr<Scene> createGameScene(AssetManager& assetManager) {
+    
+    std::filesystem::path assetRoot = getAssetRootPath();
 
-    // First example Entity.
-    Entity& sceneEntity = scene->createEntity();
-    TransformComponent& transformComponent = sceneEntity.addComponent<TransformComponent>();
-    textureHandle handle = loadPlatformTexture("assets/test.bmp");
-    sceneEntity.addComponent<SpriteComponent>(handle);
+    std::filesystem::path demoPath = assetRoot / "scenes/phase3-demo.json";
 
-    transformComponent.x = 100.0f;
-    transformComponent.y = 150.0f;
-    transformComponent.width = 50.0f;
-    transformComponent.height = 50.0f;
+    SceneSerializer sceneSerializer;
 
-    sceneEntity.addComponent<ColliderComponent>(
-        0.0f, 0.0f, 50.0f, 50.0f
-    );
+    return sceneSerializer.load(demoPath, assetManager);
 
-    // Second example Entity.
-    Entity& sceneEntity2 = scene->createEntity();
-    TransformComponent& transformComponent2 = sceneEntity2.addComponent<TransformComponent>();
-    textureHandle handle2 = loadPlatformTexture("assets/test.bmp");
-    sceneEntity2.addComponent<SpriteComponent>(handle2);
-
-    transformComponent2.x = 50.0f;
-    transformComponent2.y = 150.0f;
-    transformComponent2.width = 50.0f;
-    transformComponent2.height = 50.0f;
-
-    sceneEntity2.addComponent<ColliderComponent>(
-        0.0f, 0.0f, 50.0f, 50.0f
-    );
-
-    // Third example Entity, with an animation.
-    Entity& sceneEntity3 = scene->createEntity();
-    TransformComponent& transformComponent3 = sceneEntity3.addComponent<TransformComponent>();
-    textureHandle handle3 = loadPlatformTexture("assets/anim_sheet.bmp");
-    sceneEntity3.addComponent<SpriteComponent>(handle3);
-
-    transformComponent3.x = 300.0f;
-    transformComponent3.y = 150.0f;
-    transformComponent3.width = 32.0f;
-    transformComponent3.height = 32.0f;
-
-    const std::vector<Bounds> frames = {
-        {0.0f, 0.0f, 32.0f, 32.0f},
-        {32.0f, 0.0f, 32.0f, 32.0f},
-        {64.0f, 0.0f, 32.0f, 32.0f},
-        {96.0f, 0.0f, 32.0f, 32.0f},
-    };
-
-    sceneEntity3.addComponent<AnimationComponent>(
-        frames, 0.25f, true
-    );
-
-    return scene;
 }
 
-void handleCollisions(
-    const std::vector<ColliderSystem::CollisionPair>& collisionPairs
-) {
-    // Gameplay can decide what each overlap means.
-    // For now, log pairs to verify that detection works.
-    //
-    // This does not stop movement, push Entities apart,
-    // or apply physics.
+bool handleCollisions(const std::vector<ColliderSystem::CollisionPair>& collisionPairs, Scene& scene, bool& wasOverlapping) {
+    const auto& entities = scene.getEntities();
 
+    // The demo's trigger is the second Entity.
+    if (entities.size() < 2) {
+        wasOverlapping = false;
+        return false;
+    }
+
+    Entity* player = nullptr;
+
+    // Find the player by its AnimationComponent.
+    for (const auto& entity : entities) {
+        if (entity->getComponent<AnimationComponent>() != nullptr) {
+            player = entity.get();
+            break;
+        }
+    }
+
+    // No player means no valid trigger overlap.
+    if (player == nullptr) {
+        wasOverlapping = false;
+        return false;
+    }
+
+    Entity* trigger = entities[1].get();
+
+    if (player == trigger) {
+        wasOverlapping = false;
+        return false;
+    }
+
+    bool currentlyOverlapping = false;
+
+    // Find the collision between our player and trigger.
     for (const auto& [entityAId, entityBId] : collisionPairs) {
-        logMessage(
-            logger_level::Info,
-            "Collision detected between Entity " +
-                std::to_string(entityAId) +
-                " and Entity " +
-                std::to_string(entityBId)
-        );
+        if ((entityAId == player->getId() && entityBId == trigger->getId()) || (entityAId == trigger->getId() && entityBId == player->getId())) {
+            currentlyOverlapping = true;
+            break;
+        }
+    }
+
+    // A new entry happens only if they weren't overlapping before.
+    bool justEntered = currentlyOverlapping && !wasOverlapping;
+
+    // Remember the current state for the next frame.
+    wasOverlapping = currentlyOverlapping;
+
+    return justEntered;
+}
+
+
+void updatePlayerMovement(Scene& scene, float deltaTime) {
+    constexpr float playerSpeed = 200.0f; // Pixels per second
+
+    for (const auto& entity : scene.getEntities()) {
+        // Find the player (the animated Entity).
+        auto* animationComponent = entity->getComponent<AnimationComponent>();
+
+        if (animationComponent == nullptr) {
+            continue;
+        }
+
+        Transform* transformComponent = entity->getComponent<Transform>();
+
+        if (transformComponent == nullptr) {
+            return;
+        }
+
+        float movement = playerSpeed * deltaTime;
+
+        // Left
+        if (isKeyHeld(Key::A)) {
+            transformComponent->x -= movement;
+        }
+
+        // Right
+        if (isKeyHeld(Key::D)) {
+            transformComponent->x += movement;
+        }
+
+        // Up
+        if (isKeyHeld(Key::W)) {
+            transformComponent->y -= movement;
+        }
+
+        // Down
+        if (isKeyHeld(Key::S)) {
+            transformComponent->y += movement;
+        }
+
+        break; // Only move the first animated Entity.
     }
 }
