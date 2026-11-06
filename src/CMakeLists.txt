@@ -34,6 +34,11 @@ add_executable(game_engine
 target_link_libraries(game_engine PRIVATE SDL3::SDL3)
 target_link_libraries(game_engine PRIVATE nlohmann_json::nlohmann_json)
 
+if (ENGINE_EDITOR)
+target_link_libraries(game_engine PRIVATE imgui_lib)
+target_compile_definitions(game_engine PRIVATE ENGINE_EDITOR)
+endif()
+
 target_include_directories(game_engine PRIVATE
     ${ENGINE_INCLUDE_DIRS}
 )
