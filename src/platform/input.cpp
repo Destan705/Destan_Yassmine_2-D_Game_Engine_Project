@@ -2,6 +2,12 @@
 #include <SDL3/SDL.h>
 #include <array>
 
+#ifdef ENGINE_EDITOR
+
+#include "imgui.h"
+#include "imgui_impl_sdl3.h"
+
+#endif
 SDL_Event event;
 const bool* keystate;
 std::array<bool, SDL_SCANCODE_COUNT> pressedThisFrame{};
@@ -188,19 +194,35 @@ SDL_Scancode toSDLScancode(Key key) {
 void initializeInput() { // call after SDL been init in platform.cpp
     keystate = SDL_GetKeyboardState(nullptr);
 }
+// is the user typing in the editor right now
+bool uiWantsKeyboard() {
+#ifdef ENGINE_EDITOR
+    if(ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureKeyboard ){
+        return true;
+    }
+    return false;
+#else
+    return false;
+#endif
+}
 
 bool processPlatformEvents() {
     pressedThisFrame.fill(false);
     releasedThisFrame.fill(false);
 
     while (SDL_PollEvent(&event)) {
+        #ifdef ENGINE_EDITOR
+          if (ImGui::GetCurrentContext() != nullptr) {
+           ImGui_ImplSDL3_ProcessEvent(&event);
+        }
+        #endif
         if (event.type == SDL_EVENT_QUIT or event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
             return false;
-        } else if (event.type == SDL_EVENT_KEY_DOWN) {
+        } else if (event.type == SDL_EVENT_KEY_DOWN && !uiWantsKeyboard()) {
             if (!event.key.repeat) {
                 pressedThisFrame[event.key.scancode] = true;
             }
-        } else if (event.type == SDL_EVENT_KEY_UP) {
+        } else if (event.type == SDL_EVENT_KEY_UP && !uiWantsKeyboard()) {
             releasedThisFrame[event.key.scancode] = true;
         }
     }
@@ -208,6 +230,9 @@ bool processPlatformEvents() {
 }
 
 bool isKeyHeld(Key key) {
+    if( uiWantsKeyboard()){
+        return false;
+    }
     return keystate[toSDLScancode(key)] == true;
 }
 
