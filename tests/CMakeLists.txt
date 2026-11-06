@@ -24,9 +24,8 @@ add_executable(engine_tests
     scene/test_scene_serializer_contract.cpp
 
     # Engine source files
-    ../src/colliderSystem.cpp
 
-    ../src/audio_service.cpp
+    ../src/audio/audio_service.cpp
 
     ../src/rendering/renderer.cpp
 
@@ -39,17 +38,18 @@ add_executable(engine_tests
 
     ../src/ecs/component.cpp
     ../src/ecs/entity.cpp
-    ../src/ecs/sprite.cpp
-    ../src/ecs/animationComponent.cpp
-    ../src/ecs/colliderComponent.cpp
+    ../src/ecs/sprite_component.cpp
+    ../src/ecs/animation_component.cpp
+    ../src/ecs/collider_component.cpp
+    ../src/ecs/collider_system.cpp
 
     ../src/events/event_dispatcher.cpp
 
     ../src/scene/scene.cpp
     ../src/scene/scene_manager.cpp
+    ../src/scene/scene_serializer.cpp
 
-    ../src/scene_serializer.cpp
-    ../src/asset_manager.cpp
+    ../src/assets/asset_manager.cpp
 )
 
 target_link_libraries(engine_tests PRIVATE

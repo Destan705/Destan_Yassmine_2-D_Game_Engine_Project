@@ -1,9 +1,9 @@
-#include "colliderSystem.h"
+#include "collider_system.h"
 #include "scene.h"
 #include <optional>
 #include "entity.h"
-#include "transform.h"
-#include "colliderComponent.h"
+#include "transform_component.h"
+#include "collider_component.h"
 #include <cmath>
 
 
@@ -24,7 +24,7 @@ namespace{
     }
 
     std::optional<rectangle> getWorldBounds(Entity& entity) {
-        Transform* transformComponent = entity.getComponent<Transform>();
+        TransformComponent* transformComponent = entity.getComponent<TransformComponent>();
         ColliderComponent* colliderComponent = entity.getComponent<ColliderComponent>();
 
         if (!transformComponent || !colliderComponent || !colliderComponent->isEnabled()) {

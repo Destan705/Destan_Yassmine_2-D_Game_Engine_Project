@@ -1,15 +1,15 @@
 
 #include "game.h"
 
-#include "animationComponent.h"
-#include "colliderComponent.h"
+#include "animation_component.h"
+#include "collider_component.h"
 #include "entity.h"
 #include "logger.h"
 #include "platform.h"
 #include "rendertypes.h"
 #include "scene.h"
-#include "sprite.h"
-#include "transform.h"
+#include "sprite_component.h"
+#include "transform_component.h"
 
 #include <memory>
 #include <string>
@@ -20,9 +20,9 @@ std::unique_ptr<Scene> createGameScene() {
 
     // First example Entity.
     Entity& sceneEntity = scene->createEntity();
-    Transform& transformComponent = sceneEntity.addComponent<Transform>();
+    TransformComponent& transformComponent = sceneEntity.addComponent<TransformComponent>();
     textureHandle handle = loadPlatformTexture("assets/test.bmp");
-    sceneEntity.addComponent<Sprite>(handle);
+    sceneEntity.addComponent<SpriteComponent>(handle);
 
     transformComponent.x = 100.0f;
     transformComponent.y = 150.0f;
@@ -35,9 +35,9 @@ std::unique_ptr<Scene> createGameScene() {
 
     // Second example Entity.
     Entity& sceneEntity2 = scene->createEntity();
-    Transform& transformComponent2 = sceneEntity2.addComponent<Transform>();
+    TransformComponent& transformComponent2 = sceneEntity2.addComponent<TransformComponent>();
     textureHandle handle2 = loadPlatformTexture("assets/test.bmp");
-    sceneEntity2.addComponent<Sprite>(handle2);
+    sceneEntity2.addComponent<SpriteComponent>(handle2);
 
     transformComponent2.x = 50.0f;
     transformComponent2.y = 150.0f;
@@ -50,9 +50,9 @@ std::unique_ptr<Scene> createGameScene() {
 
     // Third example Entity, with an animation.
     Entity& sceneEntity3 = scene->createEntity();
-    Transform& transformComponent3 = sceneEntity3.addComponent<Transform>();
+    TransformComponent& transformComponent3 = sceneEntity3.addComponent<TransformComponent>();
     textureHandle handle3 = loadPlatformTexture("assets/anim_sheet.bmp");
-    sceneEntity3.addComponent<Sprite>(handle3);
+    sceneEntity3.addComponent<SpriteComponent>(handle3);
 
     transformComponent3.x = 300.0f;
     transformComponent3.y = 150.0f;

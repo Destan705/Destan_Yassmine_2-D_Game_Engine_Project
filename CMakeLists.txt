@@ -9,6 +9,8 @@ set(ENGINE_INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/include/ecs
     ${PROJECT_SOURCE_DIR}/include/scene
     ${PROJECT_SOURCE_DIR}/include/events
+    ${PROJECT_SOURCE_DIR}/include/assets
+    ${PROJECT_SOURCE_DIR}/include/audio
 )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

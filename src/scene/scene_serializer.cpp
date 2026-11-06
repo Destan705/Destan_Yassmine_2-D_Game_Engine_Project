@@ -1,8 +1,8 @@
 #include "scene_serializer.h"
-#include "animationComponent.h"
-#include "colliderComponent.h"
-#include "sprite.h"
-#include "transform.h"
+#include "animation_component.h"
+#include "collider_component.h"
+#include "sprite_component.h"
+#include "transform_component.h"
 
 #include <algorithm>
 #include <cmath>
@@ -126,7 +126,7 @@ std::unique_ptr<Scene> SceneSerializer::load(std::filesystem::path filePath,
         std::string context = where + " transform";
         checkKnownKeys(transformData, {"x", "y", "width", "height"}, context);
 
-        Transform& transform = entity.addComponent<Transform>();
+        TransformComponent& transform = entity.addComponent<TransformComponent>();
         transform.x = readNumber(transformData, "x", context);
         transform.y = readNumber(transformData, "y", context);
         transform.width = readNumber(transformData, "width", context);
@@ -156,7 +156,7 @@ std::unique_ptr<Scene> SceneSerializer::load(std::filesystem::path filePath,
             );
         }
 
-        entity.addComponent<Sprite>(handle);
+        entity.addComponent<SpriteComponent>(handle);
 
 
         // Collider (optional). Store local bounds, NOT world-space bounds.
@@ -265,7 +265,7 @@ void SceneSerializer::save(const Scene& scene, std::filesystem::path filePath,
         nlohmann::json entityData;
 
         // Transform (required)
-        Transform* transform = entity->getComponent<Transform>();
+        TransformComponent* transform = entity->getComponent<TransformComponent>();
         if (transform == nullptr) {
             throw std::runtime_error("Entity is missing Transform component");
         }
@@ -275,7 +275,7 @@ void SceneSerializer::save(const Scene& scene, std::filesystem::path filePath,
         entityData["transform"]["height"] = transform->height;
 
         // Sprite (required)
-        Sprite* sprite = entity->getComponent<Sprite>();
+        SpriteComponent* sprite = entity->getComponent<SpriteComponent>();
         if (sprite == nullptr) {
             throw std::runtime_error("Entity is missing Sprite component");
         }
