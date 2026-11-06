@@ -12,6 +12,12 @@ SDL_Window* window = nullptr;
 std::unique_ptr<Renderer> renderer = nullptr;
 std::unique_ptr<AssetManager> assetManager = nullptr;
 textureHandle currentTexture = 0;
+//decides whether the game is built with the editor or without
+#ifdef ENGINE_EDITOR
+#include "editor.h"
+std::unique_ptr<Editor> editor = nullptr;
+#endif
+
 
 bool initializePlatform() {
     // Initialize SDL Subsystems
@@ -55,7 +61,11 @@ bool initializePlatform() {
             
         std::filesystem::path assetRoot = getAssetRootPath();
         assetManager = std::make_unique<AssetManager>(*renderer, assetRoot);
-        
+        #ifdef ENGINE_EDITOR
+
+        editor = std::make_unique<Editor>(window,renderer->getSDLRenderer());
+
+        #endif
     } catch (const std::exception& e) {
         logMessage(logger_level::Error, e.what());
         shutdownPlatform();
@@ -90,6 +100,10 @@ void presentFrame() {
 }
 
 void shutdownPlatform() {
+    
+    #ifdef ENGINE_EDITOR
+    editor.reset();
+    #endif
 
     //Destroy the asset manager first
     assetManager.reset();
@@ -105,6 +119,7 @@ void shutdownPlatform() {
     // Quit SDL subsystems
     logMessage(logger_level::Info, "Engine is shutting down");
     SDL_Quit();
+
 }
 
 void renderPlatform(Scene& scene) {

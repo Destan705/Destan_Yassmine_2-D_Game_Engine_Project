@@ -160,3 +160,7 @@ std::pair<float,float> Renderer::getTextureDimensions(textureHandle textureHandl
 
 
 }
+
+SDL_Renderer* Renderer::getSDLRenderer() const{
+    return renderer;
+}

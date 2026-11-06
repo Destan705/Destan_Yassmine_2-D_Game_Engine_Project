@@ -34,6 +34,8 @@ class Renderer {
     //return width and height of a texture
     std::pair<float,float> getTextureDimensions(textureHandle texture);
 
+    SDL_Renderer* getSDLRenderer() const;
+
   private:
     SDL_Renderer* renderer = nullptr;
     bool hasWarned = false;             // flag to track if the warning has been logged
