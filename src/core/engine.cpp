@@ -76,6 +76,8 @@ void engine() {
 
             #endif
 
+            sceneManager.update(0.0f);
+
 
             // Remember whether the player was inside the trigger.
             bool wasOverlapping = false;
@@ -96,6 +98,16 @@ void engine() {
                 // 2. Calculate delta time.
                 delta_time = (current_time - prev_time) / 1000.0f;
 
+                bool simulate = true;
+
+                #ifdef ENGINE_EDITOR
+                    
+                simulate = !editorState.getPause();
+
+                #endif
+
+                if(simulate==true){
+
                 // 3. Move player using keyboard input.
                 updatePlayerMovement(
                     sceneManager.getActiveScene(),
@@ -104,11 +116,13 @@ void engine() {
 
                 // 4. Update Scene and Components.
                 sceneManager.update(delta_time);
+            }
 
                 // 5. Detect collisions.
                 auto collisionPairs = colliderSystem.detectCollisions(
                     sceneManager.getActiveScene()
                 );
+
 
                 // 6. React to new trigger overlaps.
                 bool justEntered = handleCollisions(
@@ -116,7 +130,7 @@ void engine() {
                     wasOverlapping
                 );
 
-                if (justEntered) {
+                if (justEntered && simulate==true) {
                     logMessage(
                         logger_level::Info,
                         "Player entered trigger!"
@@ -185,6 +199,8 @@ void engine() {
 
                             #endif
 
+                            sceneManager.update(0.0f);
+
                             // Forget overlaps belonging to the old Scene.
                             wasOverlapping = false;
 
@@ -202,6 +218,23 @@ void engine() {
                         );
                     }
                 }
+
+                #ifdef ENGINE_EDITOR
+                if (wasKeyPressed(Key::F1)) {
+                    if(editorState.getPause()){
+
+                        editorState.resume();
+                    
+                       
+
+                    }else{
+
+                        editorState.pause();
+
+
+                    }
+                }
+                #endif
 
                 prev_time = current_time;
             }
