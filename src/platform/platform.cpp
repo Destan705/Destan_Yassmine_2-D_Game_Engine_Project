@@ -131,6 +131,15 @@ void renderPlatform(Scene& scene) {
 
     renderer->ClearScreen(Color{255, 255, 255, 255});
     scene.render(*renderer);
+
+    #ifdef ENGINE_EDITOR
+    
+    if(editor!=nullptr){
+    editor->render();
+    }
+
+    #endif
+
     renderer->Present();
 }
 
@@ -158,4 +167,14 @@ AssetManager& getPlatformAssetManager() {
         throw std::runtime_error("Platform asset manager is not initialized.");
     }
     return *assetManager;
+}
+
+void beginEditorFrame(){
+
+    #ifdef ENGINE_EDITOR
+    if (editor != nullptr) {
+        editor->beginFrame();
+    }
+    #endif
+
 }

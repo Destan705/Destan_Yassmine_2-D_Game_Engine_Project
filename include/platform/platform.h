@@ -13,3 +13,4 @@ void renderPlatform(Scene& scene);
 textureHandle loadPlatformTexture(const char* filePath);
 std::filesystem::path getAssetRootPath();
 AssetManager& getPlatformAssetManager();
+void beginEditorFrame();

@@ -1,3 +1,5 @@
 build/
 CMakeFiles/
 build-mingw/
+imgui.ini
+build-editor/

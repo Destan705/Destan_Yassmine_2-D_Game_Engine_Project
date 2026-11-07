@@ -5,6 +5,8 @@
 
 Editor::Editor(SDL_Window* window, SDL_Renderer* renderer) { 
 
+sdlRenderer = renderer;
+
 IMGUI_CHECKVERSION();
 //creates context
 ImGui::CreateContext();
@@ -27,3 +29,21 @@ Editor::~Editor() {
     ImGui::DestroyContext();
 
 }
+
+    // Starts a new ImGui frame. Call once per frame, after input is processed
+    // and before any editor windows are built.
+    void Editor::beginFrame(){
+        ImGui_ImplSDLRenderer3_NewFrame(); //the drawing backend
+        ImGui_ImplSDL3_NewFrame(); // the input backend
+        ImGui::NewFrame(); //ImGui itself
+    }
+
+    // Finishes the ImGui frame and draws the editor windows on top of the scene.
+    // Call after the scene is drawn and before Present().
+    void  Editor::render(){
+        ImGui::ShowDemoWindow(); // ImGui's built in demo
+        ImGui::Render(); // turns everyhting in to a list of shapes to draw
+        ImGui_ImplSDLRenderer3_RenderDrawData( ImGui::GetDrawData(), sdlRenderer);
+
+    }
+

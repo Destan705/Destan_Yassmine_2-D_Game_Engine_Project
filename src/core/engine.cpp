@@ -95,6 +95,8 @@ void engine() {
                     break;
                 }
 
+                beginEditorFrame();
+
                 // 2. Calculate delta time.
                 delta_time = (current_time - prev_time) / 1000.0f;
 

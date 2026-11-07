@@ -18,4 +18,16 @@ class Editor {
     // and the second shutdown would crash.
     Editor(const Editor&) = delete;
     Editor& operator=(const Editor&) = delete;
+
+    // Starts a new ImGui frame. Call once per frame, after input is processed
+    // and before any editor windows are built.
+    void beginFrame();
+
+    // Finishes the ImGui frame and draws the editor windows on top of the scene.
+    // Call after the scene is drawn and before Present().
+    void render();
+    
+    private:
+
+    SDL_Renderer* sdlRenderer = nullptr;
 };
