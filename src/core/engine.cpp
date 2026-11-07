@@ -11,6 +11,10 @@
 #include "scene_manager.h"
 #include "scene_serializer.h"
 
+#ifdef ENGINE_EDITOR
+#include "editor_state.h"
+#endif
+
 #include <chrono>
 #include <exception>
 #include <filesystem>
@@ -49,6 +53,11 @@ void engine() {
             SceneManager sceneManager(eventDispatcher);
             SceneSerializer sceneSerializer;
 
+            #ifdef ENGINE_EDITOR
+           EditorState editorState;
+            #endif
+
+
             // Save beside the demo assets, not in the working directory.
             const std::filesystem::path savedScenePath =
                 getAssetRootPath() / "scenes/phase3-demo-saved.json";
@@ -60,6 +69,13 @@ void engine() {
             sceneManager.setActiveScene(
                 createGameScene(getPlatformAssetManager())
             );
+
+            #ifdef ENGINE_EDITOR
+
+            editorState.onSceneReplaced();
+
+            #endif
+
 
             // Remember whether the player was inside the trigger.
             bool wasOverlapping = false;
@@ -144,7 +160,9 @@ void engine() {
 
                 // F9: Reload the saved Scene.
                 if (wasKeyPressed(Key::F9)) {
+
                     try {
+    
                         if (!std::filesystem::exists(savedScenePath)) {
                             logMessage(
                                 logger_level::Warning,
@@ -159,6 +177,13 @@ void engine() {
 
                             // Replace the Scene at the frame boundary.
                             sceneManager.setActiveScene(std::move(newScene));
+
+
+                             #ifdef ENGINE_EDITOR
+
+                             editorState.onSceneReplaced();
+
+                            #endif
 
                             // Forget overlaps belonging to the old Scene.
                             wasOverlapping = false;
