@@ -12,6 +12,7 @@ SDL_Event event;
 const bool* keystate;
 std::array<bool, SDL_SCANCODE_COUNT> pressedThisFrame{};
 std::array<bool, SDL_SCANCODE_COUNT> releasedThisFrame{};
+std::array<bool, SDL_SCANCODE_COUNT> shortcutPressedThisFrame{};
 
 SDL_Scancode toSDLScancode(Key key) {
     switch (key) {
@@ -209,13 +210,22 @@ bool uiWantsKeyboard() {
 bool processPlatformEvents() {
     pressedThisFrame.fill(false);
     releasedThisFrame.fill(false);
+    shortcutPressedThisFrame.fill(false);
 
     while (SDL_PollEvent(&event)) {
+
         #ifdef ENGINE_EDITOR
           if (ImGui::GetCurrentContext() != nullptr) {
            ImGui_ImplSDL3_ProcessEvent(&event);
         }
         #endif
+
+        if(event.type == SDL_EVENT_KEY_DOWN){
+            if (!event.key.repeat) {
+            shortcutPressedThisFrame[event.key.scancode] =true;
+            }
+        }
+
         if (event.type == SDL_EVENT_QUIT or event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
             return false;
         } else if (event.type == SDL_EVENT_KEY_DOWN && !uiWantsKeyboard()) {
@@ -243,3 +253,8 @@ bool wasKeyPressed(Key key) {
 bool wasKeyReleased(Key key) {
     return releasedThisFrame[toSDLScancode(key)];
 }
+
+bool wasShortcutPressed(Key key){
+    return shortcutPressedThisFrame[toSDLScancode(key)];
+}
+

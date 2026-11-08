@@ -100,3 +100,5 @@ bool isKeyHeld(Key key);
 bool wasKeyPressed(Key key);
 
 bool wasKeyReleased(Key key);
+
+bool beginEditorFrame(Key key);

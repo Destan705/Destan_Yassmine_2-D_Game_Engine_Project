@@ -221,8 +221,10 @@ void engine() {
                     }
                 }
 
+
+                // F1: toggle pause (works even while typing)
                 #ifdef ENGINE_EDITOR
-                if (wasKeyPressed(Key::F1)) {
+                if (wasShortcutPressed(Key::F1)) {
                     if(editorState.getPause()){
 
                         editorState.resume();
