@@ -101,4 +101,4 @@ bool wasKeyPressed(Key key);
 
 bool wasKeyReleased(Key key);
 
-bool beginEditorFrame(Key key);
+bool wasShortcutPressed(Key key);
