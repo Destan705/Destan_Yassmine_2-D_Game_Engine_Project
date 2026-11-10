@@ -46,4 +46,20 @@
         paused=false;
     }
 
+        // return whether the scene is dirty
+    bool EditorState::isDirty() const{
+        return dirty;
+    }
+
+    // marks a scene as dirty
+    void EditorState::markDirty(){
+        dirty=true;
+    }
+
+    // unmarks the scene as dirty
+    void EditorState::clearDirty(){
+        dirty = false;
+    }
+
+
 

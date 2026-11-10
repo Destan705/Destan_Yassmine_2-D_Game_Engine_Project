@@ -34,6 +34,14 @@ class EditorState {
     // Resumes the game.
     void resume();
 
+    // return whether the scene is dirty
+    bool isDirty() const;
+
+    // marks a scene as dirty
+    void markDirty();
+
+    // unmarks the scene as dirty
+    void clearDirty(); 
   private:
     // ID of the selected entity, or empty if nothing is selected.
     std::optional<std::uint64_t> selectId;
@@ -43,4 +51,7 @@ class EditorState {
 
     // Editor sessions start paused, so the game doesn't overwrite your edits.
     bool paused = true;
+
+    //wether changes in a scene is saved or not
+    bool dirty = false;
 };

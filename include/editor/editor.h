@@ -26,8 +26,9 @@ class Editor {
     // Finishes the ImGui frame and draws the editor windows on top of the scene.
     // Call after the scene is drawn and before Present().
     void render();
-    
+
     private:
 
-    SDL_Renderer* sdlRenderer = nullptr;
+    SDL_Renderer* sdlRenderer = nullptr; 
+
 };
