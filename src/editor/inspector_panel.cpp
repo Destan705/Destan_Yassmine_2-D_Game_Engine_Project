@@ -1,5 +1,7 @@
 #include "inspector_panel.h"
+#include "transform.h"
 #include "imgui.h"
+#include "editor_actions.h"
 
 
 
@@ -32,6 +34,43 @@ void InspectorPanel::draw(EditorState& editorState,Scene& scene ){
 
                 }else{
                     ImGui::Text("Entity %llu",static_cast<unsigned long long>(id));
+                        
+                    Transform* transform =selected->getComponent<Transform>();
+
+                    if(editorState.getSceneGeneration()!=lastSceneGeneration||editorState.getSelectedId()!=lastSelectedId){
+                        
+                        if(transform != nullptr){
+
+                            editX = transform->x;
+                            editY = transform->y;
+                            editWidth = transform->width;
+                            editHeight = transform->height;
+
+                        }
+                         
+                        lastSceneGeneration=editorState.getSceneGeneration();
+                        lastSelectedId = editorState.getSelectedId();
+                    }
+
+                                         if(transform != nullptr){
+                            ImGui::SeparatorText("Transform");
+
+                            ImGui::InputFloat("X", &editX);
+                            ImGui::InputFloat("Y", &editY);
+                            ImGui::InputFloat("width", &editWidth);
+                            ImGui::InputFloat("height", &editHeight);
+                       
+                            bool frame = ImGui::Button("Apply");
+
+                            if(frame){
+                            EditResult editResult = applyTransformEdit(*selected,editX,editY,editWidth,editHeight);
+                            if(editResult==EditResult::Applied){
+                                editorState.markDirty();
+                            }
+
+                            }
+                        }
+                         
                 }
                 
             }
