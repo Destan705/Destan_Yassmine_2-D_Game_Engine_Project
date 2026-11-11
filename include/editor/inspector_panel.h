@@ -1,0 +1,26 @@
+#pragma once 
+#include <optional>
+#include <cstdint>
+#include "editor_state.h"
+#include "scene.h"
+
+class InspectorPanel{
+
+    private:
+
+    float editX = 0.0f;
+
+    float editY = 0.0f;
+
+    float editHeight=0.0f;
+
+    float editWidth = 0.0f;
+
+    std::optional<std::uint64_t> lastSelectedId;
+
+    std::uint64_t lastSceneGeneration = 0;
+
+    public:
+
+    void draw(EditorState& editorState,Scene& scene );
+};
