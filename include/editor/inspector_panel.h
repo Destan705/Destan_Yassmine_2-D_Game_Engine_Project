@@ -3,6 +3,8 @@
 #include <cstdint>
 #include "editor_state.h"
 #include "scene.h"
+#include "asset_manager.h"
+
 
 class InspectorPanel{
 
@@ -22,5 +24,5 @@ class InspectorPanel{
 
     public:
 
-    void draw(EditorState& editorState,Scene& scene );
+    void draw(EditorState& editorState,Scene& scene,const AssetManager& assetManager );
 };
