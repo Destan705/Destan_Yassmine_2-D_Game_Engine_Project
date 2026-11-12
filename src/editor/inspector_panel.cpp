@@ -41,30 +41,40 @@ void InspectorPanel::draw(EditorState& editorState,Scene& scene,const AssetManag
                         
                     Transform* transform =selected->getComponent<Transform>();
 
-                    if(editorState.getSceneGeneration()!=lastSceneGeneration||editorState.getSelectedId()!=lastSelectedId){
-                        
-                        if(transform != nullptr){
+                        bool pausedNow = editorState.getPause();
+                        bool justPaused = pausedNow && !lastPaused;
 
-                            editX = transform->x;
-                            editY = transform->y;
-                            editWidth = transform->width;
-                            editHeight = transform->height;
+                        if (editorState.getSceneGeneration() != lastSceneGeneration
+                            || editorState.getSelectedId() != lastSelectedId
+                            || justPaused) {
 
+                            if (transform != nullptr) {
+                                editX = transform->x;
+                                editY = transform->y;
+                                editWidth = transform->width;
+                                editHeight = transform->height;
+                            }
+
+                            lastSceneGeneration = editorState.getSceneGeneration();
+                            lastSelectedId = editorState.getSelectedId();
                         }
-                         
-                        lastSceneGeneration=editorState.getSceneGeneration();
-                        lastSelectedId = editorState.getSelectedId();
-                    }
+
+                        lastPaused = pausedNow;
+
 
                             if(transform != nullptr){
                             ImGui::SeparatorText("Transform");
 
+                            ImGui::BeginDisabled( !editorState.getPause() );
+  
                             ImGui::InputFloat("X", &editX);
                             ImGui::InputFloat("Y", &editY);
                             ImGui::InputFloat("width", &editWidth);
                             ImGui::InputFloat("height", &editHeight);
                        
                             bool frame = ImGui::Button("Apply");
+
+                            ImGui::EndDisabled();
 
                             if(frame){
                             EditResult editResult = applyTransformEdit(*selected,editX,editY,editWidth,editHeight);
@@ -84,7 +94,7 @@ void InspectorPanel::draw(EditorState& editorState,Scene& scene,const AssetManag
                                 
                             ImGui::Text("Offset X: %.2f", colliderComponent->getOffsetX());
                             ImGui::Text("Offset Y: %.2f", colliderComponent->getOffsetY());
-                            ImGui::Text("Offset width: %.2f", colliderComponent->getWidth());
+                            ImGui::Text("Width: %.2f", colliderComponent->getWidth());
                             ImGui::Text("Heigh: %.2f", colliderComponent->getHeight());
                             ImGui::Text("Enabled: %s",  colliderComponent->isEnabled() ? "Yes" : "No");
                         }
@@ -106,7 +116,7 @@ void InspectorPanel::draw(EditorState& editorState,Scene& scene,const AssetManag
                             try{
                             ImGui::Text("Path: %s", assetManager.getPath(sprite->getTexture()).c_str());
                             }catch(const std::out_of_range&){
-                                ImGui::SeparatorText("Path: (unknown)");
+                                ImGui::Text("Path: (unknown)");
                             }
 
                         }

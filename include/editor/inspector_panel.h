@@ -22,6 +22,8 @@ class InspectorPanel{
 
     std::uint64_t lastSceneGeneration = 0;
 
+    bool lastPaused = true;
+
     public:
 
     void draw(EditorState& editorState,Scene& scene,const AssetManager& assetManager );
