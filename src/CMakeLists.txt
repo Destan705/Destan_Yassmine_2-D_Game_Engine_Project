@@ -13,22 +13,21 @@ add_executable(game_engine
 
     ecs/component.cpp
     ecs/entity.cpp
-    ecs/sprite.cpp
-    ecs/animationComponent.cpp
-    ecs/colliderComponent.cpp
+    ecs/sprite_component.cpp
+    ecs/animation_component.cpp
+    ecs/collider_component.cpp
+    ecs/collider_system.cpp
 
     events/event_dispatcher.cpp
 
     scene/scene.cpp
     scene/scene_manager.cpp
+    scene/scene_serializer.cpp
 
-    colliderSystem.cpp
+    assets/asset_manager.cpp
 
-    asset_manager.cpp
+    audio/audio_service.cpp
 
-    audio_service.cpp
-
-    scene_serializer.cpp
 )
 
 target_link_libraries(game_engine PRIVATE SDL3::SDL3)

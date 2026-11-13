@@ -1,8 +1,8 @@
-#include "animationComponent.h"
+#include "animation_component.h"
 #include "entity.h"
 #include "renderer.h"
-#include "sprite.h"
-#include "transform.h"
+#include "sprite_component.h"
+#include "transform_component.h"
 
 #include <SDL3/SDL.h>
 #include <gtest/gtest.h>
@@ -151,10 +151,10 @@ TEST_F(AnimationComponentContractTest, FirstFrameDrawsOnlyItsSourceRectangle) {
     ASSERT_FALSE(bmp.empty());
     Renderer renderer(window);
     Entity entity(1);
-    auto& transform = entity.addComponent<Transform>();
+    auto& transform = entity.addComponent<TransformComponent>();
     transform.width = 16.0f;
     transform.height = 16.0f;
-    entity.addComponent<Sprite>(renderer.LoadTexture(bmp.c_str()));
+    entity.addComponent<SpriteComponent>(renderer.LoadTexture(bmp.c_str()));
     auto& animation = entity.addComponent<AnimationComponent>(kFrames, 0.25f, true);
 
     animation.update(0.0f);
@@ -166,10 +166,10 @@ TEST_F(AnimationComponentContractTest, AdvancingFrameChangesDisplayedSourceRecta
     ASSERT_FALSE(bmp.empty());
     Renderer renderer(window);
     Entity entity(1);
-    auto& transform = entity.addComponent<Transform>();
+    auto& transform = entity.addComponent<TransformComponent>();
     transform.width = 16.0f;
     transform.height = 16.0f;
-    entity.addComponent<Sprite>(renderer.LoadTexture(bmp.c_str()));
+    entity.addComponent<SpriteComponent>(renderer.LoadTexture(bmp.c_str()));
     auto& animation = entity.addComponent<AnimationComponent>(kFrames, 0.25f, true);
 
     animation.update(0.25f);
@@ -181,10 +181,10 @@ TEST_F(AnimationComponentContractTest, PausedAnimationDoesNotAdvanceUntilResumed
     ASSERT_FALSE(bmp.empty());
     Renderer renderer(window);
     Entity entity(1);
-    auto& transform = entity.addComponent<Transform>();
+    auto& transform = entity.addComponent<TransformComponent>();
     transform.width = 16.0f;
     transform.height = 16.0f;
-    entity.addComponent<Sprite>(renderer.LoadTexture(bmp.c_str()));
+    entity.addComponent<SpriteComponent>(renderer.LoadTexture(bmp.c_str()));
     auto& animation = entity.addComponent<AnimationComponent>(kFrames, 0.25f, true);
 
     animation.update(0.0f);
@@ -202,10 +202,10 @@ TEST_F(AnimationComponentContractTest, LoopingAnimationWrapsToFirstFrame) {
     ASSERT_FALSE(bmp.empty());
     Renderer renderer(window);
     Entity entity(1);
-    auto& transform = entity.addComponent<Transform>();
+    auto& transform = entity.addComponent<TransformComponent>();
     transform.width = 16.0f;
     transform.height = 16.0f;
-    entity.addComponent<Sprite>(renderer.LoadTexture(bmp.c_str()));
+    entity.addComponent<SpriteComponent>(renderer.LoadTexture(bmp.c_str()));
     auto& animation = entity.addComponent<AnimationComponent>(kFrames, 0.25f, true);
 
     animation.update(0.50f);
@@ -217,10 +217,10 @@ TEST_F(AnimationComponentContractTest, NonLoopingAnimationStaysOnLastFrame) {
     ASSERT_FALSE(bmp.empty());
     Renderer renderer(window);
     Entity entity(1);
-    auto& transform = entity.addComponent<Transform>();
+    auto& transform = entity.addComponent<TransformComponent>();
     transform.width = 16.0f;
     transform.height = 16.0f;
-    entity.addComponent<Sprite>(renderer.LoadTexture(bmp.c_str()));
+    entity.addComponent<SpriteComponent>(renderer.LoadTexture(bmp.c_str()));
     auto& animation = entity.addComponent<AnimationComponent>(kFrames, 0.25f, false);
 
     animation.update(1.0f);
@@ -234,10 +234,10 @@ TEST_F(AnimationComponentContractTest, RestartResetsDisplayedFrameAfterUpdate) {
     ASSERT_FALSE(bmp.empty());
     Renderer renderer(window);
     Entity entity(1);
-    auto& transform = entity.addComponent<Transform>();
+    auto& transform = entity.addComponent<TransformComponent>();
     transform.width = 16.0f;
     transform.height = 16.0f;
-    entity.addComponent<Sprite>(renderer.LoadTexture(bmp.c_str()));
+    entity.addComponent<SpriteComponent>(renderer.LoadTexture(bmp.c_str()));
     auto& animation = entity.addComponent<AnimationComponent>(kFrames, 0.25f, true);
 
     animation.update(0.25f);

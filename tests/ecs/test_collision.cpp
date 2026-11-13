@@ -1,8 +1,8 @@
-#include "colliderComponent.h"
-#include "colliderSystem.h"
+#include "collider_component.h"
+#include "collider_system.h"
 #include "entity.h"
 #include "scene.h"
-#include "transform.h"
+#include "transform_component.h"
 
 #include <gtest/gtest.h>
 
@@ -18,7 +18,7 @@ using Pair = ColliderSystem::CollisionPair;
 // Adds an entity with a Transform at (x, y) and a collider covering the same area.
 Entity& AddBox(Scene& scene, float x, float y, float width, float height, bool enabled = true) {
     Entity& entity = scene.createEntity();
-    Transform& transform = entity.addComponent<Transform>();
+    TransformComponent& transform = entity.addComponent<TransformComponent>();
     transform.x = x;
     transform.y = y;
     transform.width = width;
@@ -150,7 +150,7 @@ TEST(ColliderSystemTest, OffsetIsAddedToTransformPosition) {
 
     // Transform at (0, 0), but the collider is shifted right by 45, so it reaches 45..55.
     Entity& shifted = scene.createEntity();
-    shifted.addComponent<Transform>();
+    shifted.addComponent<TransformComponent>();
     shifted.addComponent<ColliderComponent>(45.0f, 0.0f, 10.0f, 10.0f);
 
     EXPECT_EQ(Detect(scene).size(), 1u);
@@ -162,7 +162,7 @@ TEST(ColliderSystemTest, OffsetCanMoveColliderAwayFromSprite) {
 
     // Same Transform position, but the collider is pushed far below.
     Entity& entity = scene.createEntity();
-    entity.addComponent<Transform>();
+    entity.addComponent<TransformComponent>();
     entity.addComponent<ColliderComponent>(0.0f, 100.0f, 10.0f, 10.0f);
 
     EXPECT_TRUE(Detect(scene).empty());
@@ -174,10 +174,10 @@ TEST(ColliderSystemTest, UsesCurrentTransformEveryPass) {
     Entity& mover = AddBox(scene, 100, 0, 10, 10);
     EXPECT_TRUE(Detect(scene).empty());
 
-    mover.getComponent<Transform>()->x = 5;
+    mover.getComponent<TransformComponent>()->x = 5;
     EXPECT_EQ(Detect(scene).size(), 1u);
 
-    mover.getComponent<Transform>()->x = 100;
+    mover.getComponent<TransformComponent>()->x = 100;
     EXPECT_TRUE(Detect(scene).empty());
 }
 
@@ -213,7 +213,7 @@ TEST(ColliderSystemTest, EntityWithoutTransformIsSkipped) {
 TEST(ColliderSystemTest, EntityWithoutColliderIsSkipped) {
     Scene scene("Test");
     AddBox(scene, 0, 0, 10, 10);
-    Transform& transform = scene.createEntity().addComponent<Transform>();
+    TransformComponent& transform = scene.createEntity().addComponent<TransformComponent>();
     transform.width = 10;
     transform.height = 10;
     EXPECT_TRUE(Detect(scene).empty());
@@ -223,7 +223,7 @@ TEST(ColliderSystemTest, NonFiniteTransformIsSkipped) {
     Scene scene("Test");
     AddBox(scene, 0, 0, 10, 10);
     Entity& broken = AddBox(scene, 0, 0, 10, 10);
-    broken.getComponent<Transform>()->x = std::numeric_limits<float>::infinity();
+    broken.getComponent<TransformComponent>()->x = std::numeric_limits<float>::infinity();
     EXPECT_TRUE(Detect(scene).empty());
 }
 

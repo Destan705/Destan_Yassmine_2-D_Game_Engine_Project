@@ -1,5 +1,9 @@
 build/
 CMakeFiles/
 build-mingw/
+<<<<<<< HEAD
 imgui.ini
 build-editor/
+=======
+.DS_Store
+>>>>>>> origin/main

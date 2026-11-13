@@ -1,4 +1,4 @@
-#include "colliderComponent.h"
+#include "collider_component.h"
 #include <cmath>
 #include <stdexcept>
 

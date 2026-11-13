@@ -1,12 +1,12 @@
-#include "animationComponent.h"
+#include "animation_component.h"
 #include "asset_manager.h"
 #include "event_dispatcher.h"
 #include "renderer.h"
 #include "scene.h"
 #include "scene_manager.h"
 #include "scene_serializer.h"
-#include "sprite.h"
-#include "transform.h"
+#include "sprite_component.h"
+#include "transform_component.h"
 
 #include <SDL3/SDL.h>
 #include <gtest/gtest.h>
@@ -168,7 +168,7 @@ TEST_F(SceneSerializerTest, LoadsTransformValues) {
     auto scene = serializer.load(WriteFile("scene.json", kValidScene), *assets);
     ASSERT_EQ(scene->getEntities().size(), 3u);
 
-    Transform* transform = scene->getEntities()[1]->getComponent<Transform>();
+    TransformComponent* transform = scene->getEntities()[1]->getComponent<TransformComponent>();
     ASSERT_NE(transform, nullptr);
     EXPECT_FLOAT_EQ(transform->x, 200.0f);
     EXPECT_FLOAT_EQ(transform->y, 300.0f);
@@ -180,8 +180,8 @@ TEST_F(SceneSerializerTest, SpritePathsResolveThroughAssetManager) {
     auto scene = serializer.load(WriteFile("scene.json", kValidScene), *assets);
     ASSERT_EQ(scene->getEntities().size(), 3u);
 
-    Sprite* first = scene->getEntities()[0]->getComponent<Sprite>();
-    Sprite* third = scene->getEntities()[2]->getComponent<Sprite>();
+    SpriteComponent* first = scene->getEntities()[0]->getComponent<SpriteComponent>();
+    SpriteComponent* third = scene->getEntities()[2]->getComponent<SpriteComponent>();
     ASSERT_NE(first, nullptr);
     ASSERT_NE(third, nullptr);
     EXPECT_EQ(assets->getPath(first->getTexture()), "red.bmp");
@@ -192,8 +192,8 @@ TEST_F(SceneSerializerTest, SharedTexturePathReusesOneHandle) {
     auto scene = serializer.load(WriteFile("scene.json", kValidScene), *assets);
     ASSERT_EQ(scene->getEntities().size(), 3u);
 
-    Sprite* first = scene->getEntities()[0]->getComponent<Sprite>();
-    Sprite* second = scene->getEntities()[1]->getComponent<Sprite>();
+    SpriteComponent* first = scene->getEntities()[0]->getComponent<SpriteComponent>();
+    SpriteComponent* second = scene->getEntities()[1]->getComponent<SpriteComponent>();
     ASSERT_NE(first, nullptr);
     ASSERT_NE(second, nullptr);
     EXPECT_EQ(first->getTexture(), second->getTexture());
@@ -371,7 +371,7 @@ TEST_F(SceneSerializerTest, FailedSaveKeepsPreviousFile) {
 
 TEST_F(SceneSerializerTest, SavingUnsupportedEntityFailsAndKeepsPreviousFile) {
     Scene scene("Incomplete");
-    scene.createEntity().addComponent<Transform>(); // no Sprite
+    scene.createEntity().addComponent<TransformComponent>(); // no Sprite
     const auto destination = WriteFile("keep.json", "previous good content");
 
     EXPECT_THROW(serializer.save(scene, destination, *assets), std::runtime_error);

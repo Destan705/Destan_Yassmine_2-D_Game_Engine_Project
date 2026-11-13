@@ -5,9 +5,10 @@
 #include "rendertypes.h"
 #include <optional>
 
-class Sprite : public Component {
+class SpriteComponent : public Component {
+
   public:
-    explicit Sprite(textureHandle handle);
+    explicit SpriteComponent(textureHandle handle);
     void render(Renderer& renderer) override;
     void sourceSet(std::optional<Bounds> source);
     textureHandle getTexture() const;

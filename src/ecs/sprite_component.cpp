@@ -1,20 +1,20 @@
-#include "transform.h"
-#include "sprite.h"
+#include "transform_component.h"
+#include "sprite_component.h"
 #include "entity.h"
 #include "renderer.h"
 
-Sprite::Sprite(textureHandle handle){
+SpriteComponent::SpriteComponent(textureHandle handle){
     currentTexture = handle;
 }
 
-void Sprite::render(Renderer& renderer){
+void SpriteComponent::render(Renderer& renderer){
 
     Entity* owner= getOwner();
     if(owner==nullptr){
         return;
     }
     
-    Transform* transform = owner->getComponent<Transform>();
+    TransformComponent* transform = owner->getComponent<TransformComponent>();
     if(transform==nullptr){
         return;
     }
@@ -23,10 +23,10 @@ void Sprite::render(Renderer& renderer){
     renderer.DrawTexture(currentTexture, bounds, src);
 }
 
-void Sprite::sourceSet(std::optional<Bounds> source) {
+void SpriteComponent::sourceSet(std::optional<Bounds> source) {
     src = source;
 }
 
-textureHandle Sprite::getTexture() const {
+textureHandle SpriteComponent::getTexture() const {
     return currentTexture;
 }

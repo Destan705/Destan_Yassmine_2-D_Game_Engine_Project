@@ -1,8 +1,8 @@
 
 #include "entity.h"
 #include "renderer.h"
-#include "sprite.h"
-#include "transform.h"
+#include "sprite_component.h"
+#include "transform_component.h"
 
 #include <gtest/gtest.h>
 
@@ -15,7 +15,7 @@
 // ============================================================
 
 TEST(TransformTest, DefaultsToZero) {
-    Transform transform;
+    TransformComponent transform;
 
     EXPECT_FLOAT_EQ(transform.x, 0.0f);
     EXPECT_FLOAT_EQ(transform.y, 0.0f);
@@ -24,7 +24,7 @@ TEST(TransformTest, DefaultsToZero) {
 }
 
 TEST(TransformTest, StoresPositionAndSize) {
-    Transform transform;
+    TransformComponent transform;
 
     transform.x = 50.0f;
     transform.y = 75.0f;
@@ -38,7 +38,7 @@ TEST(TransformTest, StoresPositionAndSize) {
 }
 
 TEST(TransformTest, ValuesCanBeUpdated) {
-    Transform transform;
+    TransformComponent transform;
 
     transform.x = 10.0f;
     transform.y = 20.0f;
@@ -53,9 +53,9 @@ TEST(TransformTest, ValuesCanBeUpdated) {
 TEST(TransformTest, CanBeAttachedToEntity) {
     Entity entity(1);
 
-    Transform& transform = entity.addComponent<Transform>();
+    TransformComponent& transform = entity.addComponent<TransformComponent>();
 
-    EXPECT_EQ(entity.getComponent<Transform>(), &transform);
+    EXPECT_EQ(entity.getComponent<TransformComponent>(), &transform);
     EXPECT_EQ(transform.getOwner(), &entity);
 }
 
@@ -63,11 +63,11 @@ TEST(TransformTest, DifferentEntitiesHaveIndependentTransforms) {
     Entity first(1);
     Entity second(2);
 
-    first.addComponent<Transform>().x = 25.0f;
-    second.addComponent<Transform>().x = 75.0f;
+    first.addComponent<TransformComponent>().x = 25.0f;
+    second.addComponent<TransformComponent>().x = 75.0f;
 
-    EXPECT_FLOAT_EQ(first.getComponent<Transform>()->x, 25.0f);
-    EXPECT_FLOAT_EQ(second.getComponent<Transform>()->x, 75.0f);
+    EXPECT_FLOAT_EQ(first.getComponent<TransformComponent>()->x, 25.0f);
+    EXPECT_FLOAT_EQ(second.getComponent<TransformComponent>()->x, 75.0f);
 }
 
 // ============================================================
@@ -77,52 +77,52 @@ TEST(TransformTest, DifferentEntitiesHaveIndependentTransforms) {
 TEST(SpriteTest, CanBeAttachedToEntity) {
     Entity entity(1);
 
-    Sprite& sprite = entity.addComponent<Sprite>(1u);
+    SpriteComponent& sprite = entity.addComponent<SpriteComponent>(1u);
 
-    EXPECT_EQ(entity.getComponent<Sprite>(), &sprite);
+    EXPECT_EQ(entity.getComponent<SpriteComponent>(), &sprite);
     EXPECT_EQ(sprite.getOwner(), &entity);
 }
 
 TEST(SpriteTest, SpriteAndTransformShareSameOwner) {
     Entity entity(1);
 
-    Transform& transform = entity.addComponent<Transform>();
-    Sprite& sprite = entity.addComponent<Sprite>(1u);
+    TransformComponent& transform = entity.addComponent<TransformComponent>();
+    SpriteComponent& sprite = entity.addComponent<SpriteComponent>(1u);
 
     EXPECT_EQ(transform.getOwner(), &entity);
     EXPECT_EQ(sprite.getOwner(), &entity);
-    EXPECT_EQ(entity.getComponent<Transform>(), &transform);
+    EXPECT_EQ(entity.getComponent<TransformComponent>(), &transform);
 }
 
 TEST(SpriteTest, CannotAttachDuplicateSprite) {
     Entity entity(1);
 
-    entity.addComponent<Sprite>(1u);
+    entity.addComponent<SpriteComponent>(1u);
 
-    EXPECT_THROW(entity.addComponent<Sprite>(2u), std::logic_error);
+    EXPECT_THROW(entity.addComponent<SpriteComponent>(2u), std::logic_error);
 }
 
 TEST(SpriteTest, CannotAttachDuplicateTransform) {
     Entity entity(1);
 
-    entity.addComponent<Transform>();
+    entity.addComponent<TransformComponent>();
 
-    EXPECT_THROW(entity.addComponent<Transform>(), std::logic_error);
+    EXPECT_THROW(entity.addComponent<TransformComponent>(), std::logic_error);
 }
 
 TEST(SpriteTest, MissingTransformCanBeDetected) {
     Entity entity(1);
-    entity.addComponent<Sprite>(1u);
+    entity.addComponent<SpriteComponent>(1u);
 
-    EXPECT_EQ(entity.getComponent<Transform>(), nullptr);
+    EXPECT_EQ(entity.getComponent<TransformComponent>(), nullptr);
 }
 
 TEST(SpriteTest, DifferentEntitiesCanHaveDifferentSprites) {
     Entity first(1);
     Entity second(2);
 
-    Sprite& firstSprite = first.addComponent<Sprite>(1u);
-    Sprite& secondSprite = second.addComponent<Sprite>(2u);
+    SpriteComponent& firstSprite = first.addComponent<SpriteComponent>(1u);
+    SpriteComponent& secondSprite = second.addComponent<SpriteComponent>(2u);
 
     EXPECT_NE(&firstSprite, &secondSprite);
     EXPECT_EQ(firstSprite.getOwner(), &first);
@@ -143,7 +143,7 @@ TEST(SpriteTest, MissingTransformSafelySkipsDrawing) {
         Renderer renderer(window);
 
         Entity entity(1);
-        entity.addComponent<Sprite>(1u);
+        entity.addComponent<SpriteComponent>(1u);
 
         EXPECT_NO_THROW(entity.render(renderer));
     }
