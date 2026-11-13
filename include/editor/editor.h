@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL3/SDL.h>
 #include "inspector_panel.h"
+#include "hierarchy_panel.h"
 
 // Owns Dear ImGui for the editor build.
 // Created by the platform after the Renderer exists, destroyed before it.
@@ -35,6 +36,8 @@ class Editor {
     SDL_Renderer* sdlRenderer = nullptr;
 
     InspectorPanel inspectorPanel;
+
+    HierarchyPanel hierarchyPanel;
 
     
 

@@ -1,10 +1,10 @@
 #include "editor_actions.h"
-#include "transform.h"
+#include "transform_component.h"
 #include <cmath>
 
 EditResult applyTransformEdit(Entity& entity, float x, float y, float width, float height){
 
-    Transform* transform = entity.getComponent<Transform>();
+    TransformComponent* transform = entity.getComponent<TransformComponent>();
 
     if(transform == nullptr||!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(width) || width <= 0 || !std::isfinite(height) || height <= 0 ){
         return EditResult::Rejected;

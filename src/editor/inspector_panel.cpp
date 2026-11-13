@@ -1,10 +1,10 @@
 #include "inspector_panel.h"
-#include "transform.h"
+#include "transform_component.h"
 #include "imgui.h"
 #include "editor_actions.h"
-#include "colliderComponent.h"
-#include "animationComponent.h"
-#include "sprite.h"
+#include "collider_component.h"
+#include "animation_component.h"
+#include "sprite_component.h"
 #include <stdexcept>
 
 
@@ -39,7 +39,7 @@ void InspectorPanel::draw(EditorState& editorState,Scene& scene,const AssetManag
                 }else{
                     ImGui::Text("Entity %llu",static_cast<unsigned long long>(id));
                         
-                    Transform* transform =selected->getComponent<Transform>();
+                    TransformComponent* transform =selected->getComponent<TransformComponent>();
 
                         bool pausedNow = editorState.getPause();
                         bool justPaused = pausedNow && !lastPaused;
@@ -109,7 +109,7 @@ void InspectorPanel::draw(EditorState& editorState,Scene& scene,const AssetManag
                             ImGui::Text("Repeat: %s", animationComponent->getRepeat()? "Yes" : "No");
                         }
                         
-                        Sprite* sprite = selected->getComponent<Sprite>();
+                        SpriteComponent* sprite = selected->getComponent<SpriteComponent>();
 
                         if(sprite != nullptr){
                             ImGui::SeparatorText("Sprite");
