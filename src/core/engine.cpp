@@ -71,8 +71,11 @@ void engine() {
             );
 
             #ifdef ENGINE_EDITOR
-
+            // TEMP (P4-115): select the player for testing until click-selection exists.
             editorState.onSceneReplaced();
+
+
+            editorState.select(3);
 
             #endif
 
@@ -202,6 +205,7 @@ void engine() {
                              #ifdef ENGINE_EDITOR
 
                              editorState.onSceneReplaced();
+
 
                             #endif
 

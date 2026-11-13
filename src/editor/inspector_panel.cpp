@@ -13,7 +13,7 @@
 // scene: where the selected entity is looked up and edited.
 // editorState: selection, pause state, and dirty flag (marked dirty when an edit is applied).
 void InspectorPanel::draw(EditorState& editorState,Scene& scene,const AssetManager& assetManager ){
-    
+    ImGui::SetNextWindowSize(ImVec2(300, 400), ImGuiCond_FirstUseEver);
         if(ImGui::Begin("Inspector")){
             if(editorState.getSelectedId()==std::nullopt){
                 ImGui::Text("Nothing selected");
