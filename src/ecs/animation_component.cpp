@@ -1,6 +1,6 @@
-#include "animationComponent.h"
+#include "animation_component.h"
 #include "entity.h"
-#include "sprite.h"
+#include "sprite_component.h"
 #include <cmath>
 #include <stdexcept>
 
@@ -44,7 +44,7 @@ void AnimationComponent::update(float dt) {
         return;
     }
 
-    Sprite* sprite = owner->getComponent<Sprite>();
+    SpriteComponent* sprite = owner->getComponent<SpriteComponent>();
 
     if (sprite == nullptr) {
         return;

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "colliderSystem.h"
+#include "collider_system.h"
 
 #include <memory>
 #include <vector>

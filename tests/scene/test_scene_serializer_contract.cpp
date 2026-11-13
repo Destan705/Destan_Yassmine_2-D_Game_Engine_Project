@@ -1,13 +1,13 @@
-#include "animationComponent.h"
+#include "animation_component.h"
 #include "asset_manager.h"
-#include "colliderComponent.h"
+#include "collider_component.h"
 #include "event_dispatcher.h"
 #include "renderer.h"
 #include "scene.h"
 #include "scene_manager.h"
 #include "scene_serializer.h"
-#include "sprite.h"
-#include "transform.h"
+#include "sprite_component.h"
+#include "transform_component.h"
 
 #include <SDL3/SDL.h>
 #include <gtest/gtest.h>
@@ -135,8 +135,8 @@ TEST_F(SceneSerializerContractTest, LoadsRealPhase3DemoThroughAssetManager) {
     ASSERT_EQ(scene->getEntities().size(), 3u);
 
     const auto& entities = scene->getEntities();
-    auto* sprite0 = entities[0]->getComponent<Sprite>();
-    auto* sprite1 = entities[1]->getComponent<Sprite>();
+    auto* sprite0 = entities[0]->getComponent<SpriteComponent>();
+    auto* sprite1 = entities[1]->getComponent<SpriteComponent>();
     auto* animated = entities[2]->getComponent<AnimationComponent>();
     ASSERT_NE(sprite0, nullptr);
     ASSERT_NE(sprite1, nullptr);
