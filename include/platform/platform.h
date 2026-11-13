@@ -2,7 +2,6 @@
 
 #include "rendertypes.h"
 #include "scene.h"
-#include "editor_state.h"
 #include <filesystem>
 #ifdef ENGINE_EDITOR
 #include "editor_state.h"
