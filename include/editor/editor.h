@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL3/SDL.h>
+#include "inspector_panel.h"
 
 // Owns Dear ImGui for the editor build.
 // Created by the platform after the Renderer exists, destroyed before it.
@@ -27,8 +28,14 @@ class Editor {
     // Call after the scene is drawn and before Present().
     void render();
 
+    void drawPanels(EditorState& editorState,Scene& scene,const AssetManager& assetManager);
+
     private:
 
-    SDL_Renderer* sdlRenderer = nullptr; 
+    SDL_Renderer* sdlRenderer = nullptr;
+
+    InspectorPanel inspectorPanel;
+
+    
 
 };

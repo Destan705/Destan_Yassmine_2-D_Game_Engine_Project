@@ -8,6 +8,7 @@
 #include <memory>
 #include <stdexcept>
 
+
 SDL_Window* window = nullptr;
 std::unique_ptr<Renderer> renderer = nullptr;
 std::unique_ptr<AssetManager> assetManager = nullptr;
@@ -178,3 +179,12 @@ void beginEditorFrame(){
     #endif
 
 }
+
+#ifdef ENGINE_EDITOR
+void drawEditorPanels(Scene& scene, EditorState& editorState){
+    if(editor != nullptr&& assetManager != nullptr){
+        editor->drawPanels(editorState, scene, *assetManager);
+    }
+}
+#endif
+

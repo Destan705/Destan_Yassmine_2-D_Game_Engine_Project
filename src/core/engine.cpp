@@ -146,9 +146,13 @@ void engine() {
                         );
                     }
                 }
+                
+                #ifdef ENGINE_EDITOR
+                drawEditorPanels(sceneManager.getActiveScene(), editorState);
+                #endif
 
                 // 7. Render the current Scene.
-                renderEngineFrame(sceneManager);
+                renderEngineFrame(sceneManager);       
 
                 // 8. Handle save/reload at the frame boundary.
 
