@@ -39,7 +39,8 @@ void InspectorPanel::draw(EditorState& editorState,Scene& scene,const AssetManag
                 }else{
                     ImGui::Text("Entity %llu",static_cast<unsigned long long>(id));
                         
-                    TransformComponent* transform =selected->getComponent<TransformComponent>();
+                    TransformComponent* transformComponent =selected->getComponent<TransformComponent>();
+                    ColliderComponent* colliderComponent = selected->getComponent<ColliderComponent>();
 
                         bool pausedNow = editorState.getPause();
                         bool justPaused = pausedNow && !lastPaused;
@@ -48,11 +49,19 @@ void InspectorPanel::draw(EditorState& editorState,Scene& scene,const AssetManag
                             || editorState.getSelectedId() != lastSelectedId
                             || justPaused) {
 
-                            if (transform != nullptr) {
-                                editX = transform->x;
-                                editY = transform->y;
-                                editWidth = transform->width;
-                                editHeight = transform->height;
+                            if (transformComponent != nullptr) {
+                                editX = transformComponent->x;
+                                editY = transformComponent->y;
+                                editWidth = transformComponent->width;
+                                editHeight = transformComponent->height;
+                            }
+
+                            if (colliderComponent != nullptr) {
+                                editColliderOffsetX = colliderComponent->getOffsetX();
+                                editColliderOffsetY = colliderComponent->getOffsetY();
+                                editColliderWidth = colliderComponent->getWidth();
+                                editColliderHeight = colliderComponent->getHeight();
+                                editColliderEnabled = colliderComponent->isEnabled();
                             }
 
                             lastSceneGeneration = editorState.getSceneGeneration();
@@ -61,42 +70,57 @@ void InspectorPanel::draw(EditorState& editorState,Scene& scene,const AssetManag
 
                         lastPaused = pausedNow;
 
-
-                            if(transform != nullptr){
                             ImGui::SeparatorText("Transform");
+                            if(transformComponent != nullptr){
 
+                                ImGui::BeginDisabled( !editorState.getPause() );
+    
+                                ImGui::InputFloat("X", &editX);
+                                ImGui::InputFloat("Y", &editY);
+                                ImGui::InputFloat("width", &editWidth);
+                                ImGui::InputFloat("height", &editHeight);
+                        
+                                bool frame = ImGui::Button("Apply##Transform");
+
+                                ImGui::EndDisabled();
+
+                                if(frame){
+                                EditResult editResult = applyTransformEdit(*selected,editX,editY,editWidth,editHeight);
+                                if(editResult==EditResult::Applied){
+                                    editorState.markDirty();
+                                }
+
+                                }
+
+                        } else {
+                            ImGui::Text("No Transform Component");
+                        }
+
+                                                    
+                        ImGui::SeparatorText("Collider");
+                        if (colliderComponent != nullptr){
+                                
                             ImGui::BeginDisabled( !editorState.getPause() );
-  
-                            ImGui::InputFloat("X", &editX);
-                            ImGui::InputFloat("Y", &editY);
-                            ImGui::InputFloat("width", &editWidth);
-                            ImGui::InputFloat("height", &editHeight);
-                       
-                            bool frame = ImGui::Button("Apply");
+
+                            ImGui::InputFloat("Offset X: ", &editColliderOffsetX);
+                            ImGui::InputFloat("Offset Y: ", &editColliderOffsetY);
+                            ImGui::InputFloat("Width: ", &editColliderWidth);
+                            ImGui::InputFloat("Height: ", &editColliderHeight);
+                            ImGui::Checkbox("Enabled", &editColliderEnabled);
+
+                            bool frame = ImGui::Button("Apply##Collider");
 
                             ImGui::EndDisabled();
 
                             if(frame){
-                            EditResult editResult = applyTransformEdit(*selected,editX,editY,editWidth,editHeight);
+                            EditResult editResult = applyColliderEdit(*selected,editColliderOffsetX,editColliderOffsetY,editColliderWidth,editColliderHeight, editColliderEnabled);
                             if(editResult==EditResult::Applied){
                                 editorState.markDirty();
                             }
 
                             }
-
-                        }
-
-                                                    
-                        ColliderComponent* colliderComponent = selected->getComponent<ColliderComponent>();
-
-                        if (colliderComponent != nullptr){
-                        ImGui::SeparatorText("Collider");
-                                
-                            ImGui::Text("Offset X: %.2f", colliderComponent->getOffsetX());
-                            ImGui::Text("Offset Y: %.2f", colliderComponent->getOffsetY());
-                            ImGui::Text("Width: %.2f", colliderComponent->getWidth());
-                            ImGui::Text("Heigh: %.2f", colliderComponent->getHeight());
-                            ImGui::Text("Enabled: %s",  colliderComponent->isEnabled() ? "Yes" : "No");
+                        } else {
+                            ImGui::Text("No Collider Component");
                         }
 
                         AnimationComponent* animationComponent = selected->getComponent<AnimationComponent>();
