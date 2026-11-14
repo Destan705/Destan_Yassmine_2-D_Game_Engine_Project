@@ -1,5 +1,8 @@
 #pragma once
 #include "entity.h"
+#include <string>
+
+class AssetManager;
 
 enum class EditResult{
 
@@ -13,3 +16,4 @@ EditResult applyTransformEdit(Entity& entity, float x, float y, float width, flo
 
 EditResult applyColliderEdit(Entity& entity, float offsetX, float offsetY, float width, float height, bool enabled);
 
+EditResult applySpriteEdit(Entity& entity, AssetManager& assetManager, const std::string& relativePath);

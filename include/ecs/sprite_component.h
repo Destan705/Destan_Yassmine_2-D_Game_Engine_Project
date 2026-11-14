@@ -12,6 +12,7 @@ class SpriteComponent : public Component {
     void render(Renderer& renderer) override;
     void sourceSet(std::optional<Bounds> source);
     textureHandle getTexture() const;
+    void setTexture(textureHandle newTexture);
 
   private:
     textureHandle currentTexture = 0;

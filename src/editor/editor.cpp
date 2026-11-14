@@ -48,7 +48,7 @@ void  Editor::render(){
 
 }
 
-void Editor::drawPanels(EditorState& editorState,Scene& scene,const AssetManager& assetManager){
+void Editor::drawPanels(EditorState& editorState,Scene& scene,  AssetManager& assetManager){
     hierarchyPanel.draw(editorState, &scene);
     inspectorPanel.draw(editorState,scene, assetManager);
 }

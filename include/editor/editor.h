@@ -29,7 +29,7 @@ class Editor {
     // Call after the scene is drawn and before Present().
     void render();
 
-    void drawPanels(EditorState& editorState,Scene& scene,const AssetManager& assetManager);
+    void drawPanels(EditorState& editorState,Scene& scene, AssetManager& assetManager);
 
     private:
 

@@ -30,3 +30,7 @@ void SpriteComponent::sourceSet(std::optional<Bounds> source) {
 textureHandle SpriteComponent::getTexture() const {
     return currentTexture;
 }
+
+void SpriteComponent::setTexture(textureHandle newTexture) {
+    currentTexture = newTexture;
+}
