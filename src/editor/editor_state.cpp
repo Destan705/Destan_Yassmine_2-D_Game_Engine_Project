@@ -61,5 +61,15 @@
         dirty = false;
     }
 
+    const std::vector<std::pair<std::uint64_t, std::uint64_t>>& EditorState::getCollisions() const{
+        return collisions;
+
+    }
+
+    // Stores this frame's colliding pairs (called once per frame by the engine).
+    void EditorState::setCollisions(const std::vector<std::pair<std::uint64_t, std::uint64_t>>& collisionList){
+        collisions = collisionList;
+    }
+
 
 

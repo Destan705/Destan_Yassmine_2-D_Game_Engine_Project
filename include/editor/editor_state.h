@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <optional>
+#include <vector>
+#include <utility>
 
 // Shared editor information that every panel reads.
 // Plain C++ (no ImGui), so it is easy to unit-test.
@@ -42,6 +44,13 @@ class EditorState {
 
     // unmarks the scene as dirty
     void clearDirty(); 
+
+    // Returns this frame's colliding entity pairs.
+    const std::vector<std::pair<std::uint64_t, std::uint64_t>>& getCollisions() const;
+
+    // Stores this frame's colliding pairs (called once per frame by the engine).
+    void setCollisions(const std::vector<std::pair<std::uint64_t, std::uint64_t>>& collisionList) ;
+    
   private:
     // ID of the selected entity, or empty if nothing is selected.
     std::optional<std::uint64_t> selectId;
@@ -54,4 +63,7 @@ class EditorState {
 
     //wether changes in a scene is saved or not
     bool dirty = false;
+
+    // list of collisions 
+    std::vector<std::pair<std::uint64_t, std::uint64_t>> collisions;
 };
