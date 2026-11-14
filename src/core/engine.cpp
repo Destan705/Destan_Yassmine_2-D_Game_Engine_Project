@@ -128,6 +128,10 @@ void engine() {
                     sceneManager.getActiveScene()
                 );
 
+                #ifdef ENGINE_EDITOR
+                editorState.setCollisions(collisionPairs);
+                #endif
+
 
                 // 6. React to new trigger overlaps.
                 bool justEntered = handleCollisions(
