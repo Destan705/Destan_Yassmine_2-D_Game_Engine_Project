@@ -123,6 +123,10 @@ void engine() {
                 sceneManager.update(delta_time);
             }
 
+               #ifdef ENGINE_EDITOR
+                drawEditorPanels(sceneManager.getActiveScene(), editorState);
+                #endif
+
                 // 5. Detect collisions.
                 auto collisionPairs = colliderSystem.detectCollisions(
                     sceneManager.getActiveScene()
@@ -154,9 +158,6 @@ void engine() {
                     }
                 }
                 
-                #ifdef ENGINE_EDITOR
-                drawEditorPanels(sceneManager.getActiveScene(), editorState);
-                #endif
 
                 // 7. Render the current Scene.
                 #ifdef ENGINE_EDITOR
