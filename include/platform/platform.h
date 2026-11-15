@@ -19,4 +19,5 @@ AssetManager& getPlatformAssetManager();
 void beginEditorFrame();
 #ifdef ENGINE_EDITOR
 void drawEditorPanels(Scene& scene, EditorState& editorState);
+void renderPlatform(Scene& scene, const EditorState& editorState);
 #endif

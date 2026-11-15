@@ -159,7 +159,11 @@ void engine() {
                 #endif
 
                 // 7. Render the current Scene.
-                renderEngineFrame(sceneManager);       
+                #ifdef ENGINE_EDITOR
+                renderPlatform(sceneManager.getActiveScene(), editorState);
+                #else
+                renderEngineFrame(sceneManager);
+                #endif   
 
                 // 8. Handle save/reload at the frame boundary.
 

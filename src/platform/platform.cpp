@@ -4,6 +4,9 @@
 #include "renderer.h"
 #include <SDL3/SDL.h>
 #include "asset_manager.h"
+#ifdef ENGINE_EDITOR
+#include "collider_overlay.h"
+#endif
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -122,7 +125,6 @@ void shutdownPlatform() {
     SDL_Quit();
 
 }
-
 void renderPlatform(Scene& scene) {
 
     if (renderer == nullptr) {
@@ -136,6 +138,7 @@ void renderPlatform(Scene& scene) {
     #ifdef ENGINE_EDITOR
     
     if(editor!=nullptr){
+   
     editor->render();
     }
 
@@ -143,6 +146,29 @@ void renderPlatform(Scene& scene) {
 
     renderer->Present();
 }
+#ifdef ENGINE_EDITOR
+void renderPlatform(Scene& scene, const EditorState& editorState) {
+
+    if (renderer == nullptr) {
+        logMessage(logger_level::Warning, "Renderer is not initialized!");
+        return;
+    }
+
+    renderer->ClearScreen(Color{255, 255, 255, 255});
+    scene.render(*renderer);
+
+    
+    drawColliderOverlay(*renderer,scene, editorState);
+    if(editor!=nullptr){
+    
+    editor->render();
+    }
+    
+
+    renderer->Present();
+}
+#endif
+  
 
 textureHandle loadPlatformTexture(const char* filePath) {
     if (renderer == nullptr) {
