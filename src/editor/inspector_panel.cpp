@@ -95,7 +95,7 @@ void InspectorPanel::draw(EditorState& editorState,Scene& scene,const AssetManag
                             ImGui::Text("Offset X: %.2f", colliderComponent->getOffsetX());
                             ImGui::Text("Offset Y: %.2f", colliderComponent->getOffsetY());
                             ImGui::Text("Width: %.2f", colliderComponent->getWidth());
-                            ImGui::Text("Heigh: %.2f", colliderComponent->getHeight());
+                            ImGui::Text("Height: %.2f", colliderComponent->getHeight());
                             ImGui::Text("Enabled: %s",  colliderComponent->isEnabled() ? "Yes" : "No");
                         }
 

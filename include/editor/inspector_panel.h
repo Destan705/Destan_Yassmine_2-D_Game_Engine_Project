@@ -6,6 +6,7 @@
 #include "asset_manager.h"
 
 
+
 class InspectorPanel{
 
     private:
