@@ -66,6 +66,10 @@ class EditorState {
 
     void clearPendingAction();
 
+    bool isAwaitingSavePath() const;
+
+    void setAwaitingSavePath(bool awaiting);
+
   private:
     // ID of the selected entity, or empty if nothing is selected.
     std::optional<std::uint64_t> selectId;
@@ -85,4 +89,6 @@ class EditorState {
     PendingSceneAction pendingAction = PendingSceneAction::None;
 
     std::optional<std::filesystem::path> pendingOpenPath = std::nullopt;
+
+    bool awaitingSavePath = false;
 };

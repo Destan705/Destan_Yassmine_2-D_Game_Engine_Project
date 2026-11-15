@@ -96,4 +96,13 @@
     void EditorState::clearPendingAction() {
         pendingAction = PendingSceneAction::None;
         pendingOpenPath = std::nullopt;
+        awaitingSavePath = false;
+    }
+
+    bool EditorState::isAwaitingSavePath() const {
+        return awaitingSavePath;
+    }
+
+    void EditorState::setAwaitingSavePath(bool awaiting){
+        awaitingSavePath = awaiting;
     }

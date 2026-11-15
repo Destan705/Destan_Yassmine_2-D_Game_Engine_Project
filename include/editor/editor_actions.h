@@ -16,11 +16,19 @@ Rejected
 
 };
 
+enum class UnsavedChangesChoice{
+    Save,
+    Discard,
+    Cancel
+};
+
 enum class SceneRequestStatus{
     Opened,
     AwaitingConfirmation,
     ReadyToClose,
-    Rejected
+    Rejected,
+    Cancelled,
+    AwaitingSavePath
 };
 
 struct SceneFileResult{
@@ -52,3 +60,9 @@ SceneFileResult saveScene(SceneManager& sceneManager, SceneSerializer& sceneSeri
 SceneRequestResult requestOpen(SceneManager& sceneManager, SceneSerializer& sceneSerializer, AssetManager& assetManager, EditorState& editorState, const std::filesystem::path& assetRoot, const std::string& relativePath);
 
 SceneRequestResult requestClose(EditorState& editorState);
+
+SceneRequestResult executePendingAction(SceneManager& sceneManager, SceneSerializer& sceneSerializer, const AssetManager& assetManager, EditorState& editorState, const std::filesystem::path& assetRoot);
+
+SceneRequestResult resolveUnsavedChanges(SceneManager& sceneManager, SceneSerializer& sceneSerializer, AssetManager& assetManager, EditorState& editorState, const std::filesystem::path& assetRoot, UnsavedChangesChoice choice);
+
+SceneRequestResult provideSavePath(SceneManager& sceneManager, SceneSerializer& sceneSerializer, AssetManager& assetManager, EditorState& editorState, const std::filesystem::path& assetRoot, const std::string& relativePath);
