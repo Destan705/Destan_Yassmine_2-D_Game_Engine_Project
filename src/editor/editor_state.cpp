@@ -18,9 +18,11 @@
     }
 
     // Call after a new Scene replaces the old one.
+    // clears the colliison snapshots as well
     // Clears the selection and increases the scene generation by 1.
     void  EditorState::onSceneReplaced(){
         unselect();
+        collisions.clear();
         sceneGeneration++;
         
     }
