@@ -211,6 +211,7 @@ bool processPlatformEvents() {
     pressedThisFrame.fill(false);
     releasedThisFrame.fill(false);
     shortcutPressedThisFrame.fill(false);
+    bool closeRequested = false;
 
     while (SDL_PollEvent(&event)) {
 
@@ -226,8 +227,9 @@ bool processPlatformEvents() {
             }
         }
 
-        if (event.type == SDL_EVENT_QUIT or event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
-            return false;
+        if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
+            closeRequested = true;
+            continue;
         } else if (event.type == SDL_EVENT_KEY_DOWN && !uiWantsKeyboard()) {
             if (!event.key.repeat) {
                 pressedThisFrame[event.key.scancode] = true;
@@ -236,7 +238,7 @@ bool processPlatformEvents() {
             releasedThisFrame[event.key.scancode] = true;
         }
     }
-    return true;
+    return !closeRequested;
 }
 
 bool isKeyHeld(Key key) {

@@ -48,9 +48,17 @@ void  Editor::render(){
 
 }
 
-void Editor::drawPanels(EditorState& editorState,Scene& scene,  AssetManager& assetManager){
+SceneFileCommand Editor::drawPanels(EditorState& editorState,Scene& scene,  AssetManager& assetManager){
     hierarchyPanel.draw(editorState, &scene);
     inspectorPanel.draw(editorState,scene, assetManager);
+    return sceneFilePanel.draw(editorState);
 }
 
+void Editor::setSceneFileFeedback(const std::string& message){
+    sceneFilePanel.setFeedbackMessage(message);
+}
+
+bool Editor::isStandaloneSaveRequested() const {
+    return sceneFilePanel.isStandaloneSaveRequested();
+}
 

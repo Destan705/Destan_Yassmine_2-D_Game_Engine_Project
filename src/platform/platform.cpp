@@ -49,18 +49,17 @@ bool initializePlatform() {
 
     try {
         renderer = std::make_unique<Renderer>(window);
-        const char* basePath = SDL_GetBasePath();
 
-        if (basePath == nullptr) {
-            throw std::runtime_error(std::string("Could not locate assets! SDL_Error: ") +
-                                     SDL_GetError());
-        }
-        const std::string texturePath = std::string(basePath) + "assets/test.bmp";
-
-        currentTexture = renderer->LoadTexture(texturePath.c_str());
-
-            
         std::filesystem::path assetRoot = getAssetRootPath();
+
+        if (assetRoot.empty()) {
+            throw std::runtime_error("Could not locate assets");
+        }
+
+        std::filesystem::path texturePath = assetRoot / "test.bmp";
+
+        currentTexture = renderer->LoadTexture(texturePath.string().c_str());
+
         assetManager = std::make_unique<AssetManager>(*renderer, assetRoot);
         #ifdef ENGINE_EDITOR
 
@@ -155,12 +154,23 @@ textureHandle loadPlatformTexture(const char* filePath) {
 }
 
 std::filesystem::path getAssetRootPath() {
+
+    #ifdef ENGINE_EDITOR
+
+    return std::filesystem::path(ENGINE_EDITOR_ASSET_ROOT);
+
+    #else
+
     const char* basePath = SDL_GetBasePath();
+
     if (basePath == nullptr) {
-        logMessage(logger_level::Warning, std::string("Unable to fetch base path : ") + SDL_GetError());
+        logMessage(logger_level::Warning, std::string("Unable to fetch base path: ") + SDL_GetError());
         return {};
     }
+
     return std::filesystem::path(basePath) / "assets";
+
+    #endif
 }
 
 AssetManager& getPlatformAssetManager() {
@@ -181,10 +191,25 @@ void beginEditorFrame(){
 }
 
 #ifdef ENGINE_EDITOR
-void drawEditorPanels(Scene& scene, EditorState& editorState){
+SceneFileCommand drawEditorPanels(Scene& scene, EditorState& editorState){
     if(editor != nullptr&& assetManager != nullptr){
-        editor->drawPanels(editorState, scene, *assetManager);
+        return editor->drawPanels(editorState, scene, *assetManager);
     }
+    return {SceneFileCommandType::None, ""};
+}
+
+void setSceneFileFeedback(const std::string& message){
+    if (editor != nullptr){
+        editor->setSceneFileFeedback(message);
+    }
+}
+
+bool isStandaloneSaveRequested() {
+    if (editor != nullptr) {
+        return editor->isStandaloneSaveRequested();
+    }
+
+    return false;
 }
 #endif
 

@@ -2,6 +2,7 @@
 #include <SDL3/SDL.h>
 #include "inspector_panel.h"
 #include "hierarchy_panel.h"
+#include "scene_file_panel.h"
 
 // Owns Dear ImGui for the editor build.
 // Created by the platform after the Renderer exists, destroyed before it.
@@ -29,7 +30,11 @@ class Editor {
     // Call after the scene is drawn and before Present().
     void render();
 
-    void drawPanels(EditorState& editorState,Scene& scene, AssetManager& assetManager);
+    SceneFileCommand drawPanels(EditorState& editorState,Scene& scene, AssetManager& assetManager);
+
+    void setSceneFileFeedback(const std::string& message);
+
+    bool isStandaloneSaveRequested() const;
 
     private:
 
@@ -38,6 +43,8 @@ class Editor {
     InspectorPanel inspectorPanel;
 
     HierarchyPanel hierarchyPanel;
+
+    SceneFilePanel sceneFilePanel;
 
     
 

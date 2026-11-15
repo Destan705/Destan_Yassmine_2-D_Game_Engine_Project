@@ -13,16 +13,70 @@
 
 #ifdef ENGINE_EDITOR
 #include "editor_state.h"
+#include "editor_actions.h"
+#include "scene_file_panel.h"
 #endif
 
 #include <chrono>
 #include <exception>
 #include <filesystem>
 #include <string>
+#include <cstdint>
 
 void renderEngineFrame(SceneManager& sceneManager) {
     renderPlatform(sceneManager.getActiveScene());
 }
+
+#ifdef ENGINE_EDITOR
+
+bool processSceneFileCommand(const SceneFileCommand& command, SceneManager& sceneManager, SceneSerializer& sceneSerializer, AssetManager& assetManager, EditorState& editorState, const std::filesystem::path& assetRoot) {
+
+    SceneRequestResult result{SceneRequestStatus::Rejected, "Unknown scene file command"};
+
+    switch (command.type) {
+
+        case SceneFileCommandType::None:
+            return false;
+
+        case SceneFileCommandType::Open:
+            result = requestOpen(sceneManager, sceneSerializer, assetManager, editorState, assetRoot, command.path);
+            break;
+
+        case SceneFileCommandType::Save: {
+            SceneFileResult saveResult = saveScene(sceneManager, sceneSerializer, assetManager, editorState, assetRoot);
+            setSceneFileFeedback(saveResult.message);
+            return false;
+        }
+
+        case SceneFileCommandType::SaveAs: {
+            SceneFileResult saveResult = saveSceneAs(sceneManager, sceneSerializer, assetManager, editorState, assetRoot, command.path);
+            setSceneFileFeedback(saveResult.message);
+            return false;
+        }
+
+        case SceneFileCommandType::ConfirmSave:
+            result = resolveUnsavedChanges(sceneManager, sceneSerializer, assetManager, editorState, assetRoot, UnsavedChangesChoice::Save);
+            break;
+
+        case SceneFileCommandType::ConfirmDiscard:
+            result = resolveUnsavedChanges(sceneManager, sceneSerializer, assetManager, editorState, assetRoot, UnsavedChangesChoice::Discard);
+            break;
+
+        case SceneFileCommandType::ConfirmCancel:
+            result = resolveUnsavedChanges(sceneManager, sceneSerializer, assetManager, editorState, assetRoot, UnsavedChangesChoice::Cancel);
+            break;
+
+        case SceneFileCommandType::ProvideSavePath:
+            result = provideSavePath(sceneManager, sceneSerializer, assetManager, editorState, assetRoot, command.path);
+            break;
+    }
+
+    setSceneFileFeedback(result.message);
+
+    return result.status == SceneRequestStatus::ReadyToClose;
+}
+
+#endif
 
 void engine() {
     bool running = initializePlatform();
@@ -59,8 +113,11 @@ void engine() {
 
 
             // Save beside the demo assets, not in the working directory.
-            const std::filesystem::path savedScenePath =
-                getAssetRootPath() / "scenes/phase3-demo-saved.json";
+            #ifndef ENGINE_EDITOR
+
+            const std::filesystem::path savedScenePath = getAssetRootPath() / "scenes/phase3-demo-saved.json";
+
+            #endif
 
             // Load the trigger sound once.
             const auto testSoundId = audioService.loadWav("audio/test.wav");
@@ -71,9 +128,11 @@ void engine() {
             );
 
             #ifdef ENGINE_EDITOR
-            // TEMP (P4-115): select the player for testing until click-selection exists.
+
             editorState.onSceneReplaced();
-            
+            editorState.setCurrentScenePath("scenes/phase3-demo.json");
+            editorState.clearDirty();
+
             #endif
 
             sceneManager.update(0.0f);
@@ -88,11 +147,29 @@ void engine() {
                         std::chrono::steady_clock::now().time_since_epoch()
                     ).count();
 
-                // 1. Process input.
-                running = processPlatformEvents();
+                // 1. Process input and handle window-close requests.
+                bool keepRunning = processPlatformEvents();
 
-                if (!running) {
+                if (!keepRunning) {
+
+                    #ifdef ENGINE_EDITOR
+
+                    if (editorState.getPendingAction() == PendingSceneAction::None && !isStandaloneSaveRequested()) {
+
+                        SceneRequestResult closeResult = requestClose(editorState);
+
+                        setSceneFileFeedback(closeResult.message);
+
+                        if (closeResult.status == SceneRequestStatus::ReadyToClose) {
+                            break;
+                        }
+                    }
+
+                    #else
+
                     break;
+
+                    #endif
                 }
 
                 beginEditorFrame();
@@ -148,101 +225,74 @@ void engine() {
                 }
                 
                 #ifdef ENGINE_EDITOR
-                drawEditorPanels(sceneManager.getActiveScene(), editorState);
+                SceneFileCommand sceneFileCommand = drawEditorPanels(sceneManager.getActiveScene(), editorState);
                 #endif
 
                 // 7. Render the current Scene.
-                renderEngineFrame(sceneManager);       
+                renderEngineFrame(sceneManager);    
+                
+                #ifdef ENGINE_EDITOR
+                std::uint64_t previousGeneration = editorState.getSceneGeneration();
 
+                if (processSceneFileCommand(sceneFileCommand, sceneManager, sceneSerializer, getPlatformAssetManager(), editorState, getAssetRootPath())) {
+                    break;
+                }
+
+                if (previousGeneration != editorState.getSceneGeneration()) {
+                    wasOverlapping = false;
+                }
+                #endif
                 // 8. Handle save/reload at the frame boundary.
+
+                
+                #ifndef ENGINE_EDITOR
 
                 // F5: Save the current Scene.
                 if (wasKeyPressed(Key::F5)) {
                     try {
-                        sceneSerializer.save(
-                            sceneManager.getActiveScene(),
-                            savedScenePath,
-                            getPlatformAssetManager()
-                        );
+                        sceneSerializer.save(sceneManager.getActiveScene(), savedScenePath, getPlatformAssetManager());
 
-                        logMessage(
-                            logger_level::Info,
-                            "Scene saved to: " + savedScenePath.string()
-                        );
+                        logMessage(logger_level::Info, "Scene saved to: " + savedScenePath.string());
 
                     } catch (const std::exception& e) {
-                        logMessage(
-                            logger_level::Error,
-                            std::string("Failed to save Scene: ") + e.what()
-                        );
+                        logMessage(logger_level::Error, std::string("Failed to save Scene: ") + e.what());
                     }
                 }
 
                 // F9: Reload the saved Scene.
                 if (wasKeyPressed(Key::F9)) {
-
                     try {
-    
                         if (!std::filesystem::exists(savedScenePath)) {
-                            logMessage(
-                                logger_level::Warning,
-                                "No saved Scene found. Press F5 first."
-                            );
+                            logMessage(logger_level::Warning, "No saved Scene found. Press F5 first.");
                         } else {
-                            // Fully load the replacement before activating it.
-                            auto newScene = sceneSerializer.load(
-                                savedScenePath,
-                                getPlatformAssetManager()
-                            );
+                            auto newScene = sceneSerializer.load(savedScenePath, getPlatformAssetManager());
 
-                            // Replace the Scene at the frame boundary.
                             sceneManager.setActiveScene(std::move(newScene));
-
-
-                             #ifdef ENGINE_EDITOR
-
-                             editorState.onSceneReplaced();
-
-
-                            #endif
-
                             sceneManager.update(0.0f);
 
-                            // Forget overlaps belonging to the old Scene.
                             wasOverlapping = false;
 
-                            logMessage(
-                                logger_level::Info,
-                                "Scene reloaded successfully!"
-                            );
+                            logMessage(logger_level::Info, "Scene reloaded successfully!");
                         }
 
                     } catch (const std::exception& e) {
-                        // The existing Scene stays active if loading fails.
-                        logMessage(
-                            logger_level::Error,
-                            std::string("Failed to reload Scene: ") + e.what()
-                        );
+                        logMessage(logger_level::Error, std::string("Failed to reload Scene: ") + e.what());
                     }
                 }
 
+                #endif
 
-                // F1: toggle pause (works even while typing)
                 #ifdef ENGINE_EDITOR
-                if (wasShortcutPressed(Key::F1)) {
-                    if(editorState.getPause()){
 
+                // F1: Toggle pause only when no scene file operation is pending.
+                if (wasShortcutPressed(Key::F1) && editorState.getPendingAction() == PendingSceneAction::None && !isStandaloneSaveRequested()) {
+                    if (editorState.getPause()) {
                         editorState.resume();
-                    
-                       
-
-                    }else{
-
+                    } else {
                         editorState.pause();
-
-
                     }
                 }
+
                 #endif
 
                 prev_time = current_time;
