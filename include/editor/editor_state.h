@@ -1,6 +1,13 @@
 #pragma once
 #include <cstdint>
 #include <optional>
+#include <filesystem>
+
+enum class PendingSceneAction {
+  None,
+  Open,
+  Close
+};
 
 // Shared editor information that every panel reads.
 // Plain C++ (no ImGui), so it is easy to unit-test.
@@ -42,6 +49,23 @@ class EditorState {
 
     // unmarks the scene as dirty
     void clearDirty(); 
+
+    std::optional<std::filesystem::path> getCurrentScenePath() const;
+
+    void setCurrentScenePath(std::filesystem::path path);
+
+    void clearCurrentScenePath();
+
+    PendingSceneAction getPendingAction() const;
+
+    std::optional<std::filesystem::path> getPendingOpenPath() const;
+
+    void setPendingOpen(const std::filesystem::path& path);
+
+    void setPendingClose();
+
+    void clearPendingAction();
+
   private:
     // ID of the selected entity, or empty if nothing is selected.
     std::optional<std::uint64_t> selectId;
@@ -54,4 +78,11 @@ class EditorState {
 
     //wether changes in a scene is saved or not
     bool dirty = false;
+
+    // Current path != path user is typing into the panel 
+    std::optional<std::filesystem::path> currentScenePath = std::nullopt;
+
+    PendingSceneAction pendingAction = PendingSceneAction::None;
+
+    std::optional<std::filesystem::path> pendingOpenPath = std::nullopt;
 };

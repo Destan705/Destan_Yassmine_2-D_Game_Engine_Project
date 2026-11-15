@@ -1,5 +1,5 @@
 #include "editor_state.h"
-
+#include <utility>
 
     // Selects the entity with this ID (e.g. when it's clicked in the Hierarchy).
     void EditorState::select(std::uint64_t entityId){
@@ -44,6 +44,7 @@
     // Resumes the game.
     void EditorState::resume(){
         paused=false;
+        markDirty();
     }
 
         // return whether the scene is dirty
@@ -62,4 +63,37 @@
     }
 
 
+    std::optional<std::filesystem::path> EditorState::getCurrentScenePath() const {
+        return currentScenePath;
+    }
 
+    void EditorState::setCurrentScenePath(std::filesystem::path path) {
+        currentScenePath = std::move(path);
+    }
+
+    void EditorState::clearCurrentScenePath() {
+        currentScenePath.reset();
+    }
+
+    PendingSceneAction EditorState::getPendingAction() const {
+        return pendingAction;
+    }
+
+    std::optional<std::filesystem::path> EditorState::getPendingOpenPath() const {
+        return pendingOpenPath;
+    }
+
+    void EditorState::setPendingOpen(const std::filesystem::path& path) {
+        pendingOpenPath = path;
+        pendingAction = PendingSceneAction::Open;
+    }
+
+    void EditorState::setPendingClose() {
+        pendingAction = PendingSceneAction::Close;
+        pendingOpenPath = std::nullopt;
+    }
+
+    void EditorState::clearPendingAction() {
+        pendingAction = PendingSceneAction::None;
+        pendingOpenPath = std::nullopt;
+    }

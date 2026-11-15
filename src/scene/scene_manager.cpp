@@ -1,5 +1,9 @@
 #include "scene_manager.h"
+#include "logger.h"
 #include <stdexcept>
+#include <string>
+#include <utility>
+#include <exception>
 
 SceneManager::SceneManager(EventDispatcher& dispatcher) : eventDispatcher(dispatcher) {
 }
@@ -19,7 +23,13 @@ void SceneManager::setActiveScene(std::unique_ptr<Scene> scene) {
 
     currentScene = std::move(scene);
 
-    eventDispatcher.dispatch(SceneChangedEvent{oldName, newName});
+    try {
+        eventDispatcher.dispatch(SceneChangedEvent{oldName, newName});
+    } catch (const std::exception& e) {
+        logMessage(logger_level::Error, std::string("Scene-change notification failed: ") + e.what());
+    } catch (...) {
+        logMessage(logger_level::Error, "Unknown exception occurred during scene-change");
+    }
 }
 
 // upadates the active scene
