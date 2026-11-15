@@ -50,6 +50,12 @@ class EditorState {
 
     // Stores this frame's colliding pairs (called once per frame by the engine).
     void setCollisions(const std::vector<std::pair<std::uint64_t, std::uint64_t>>& collisionList) ;
+
+    // Returns true if collider outlines should be drawn.
+    bool getShowColliders()const;
+
+    // sets true or false if collider outlines should be drawn.
+    void setShowColliders(const bool displayColliders);
     
   private:
     // ID of the selected entity, or empty if nothing is selected.
@@ -66,4 +72,7 @@ class EditorState {
 
     // list of collisions 
     std::vector<std::pair<std::uint64_t, std::uint64_t>> collisions;
+
+    //show collider or not
+    bool showColliders=true;
 };

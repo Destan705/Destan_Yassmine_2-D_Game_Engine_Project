@@ -5,6 +5,7 @@
 
 
 void drawColliderOverlay(Renderer& renderer, Scene& scene, const EditorState& editorState){
+    if (editorState.getShowColliders()){
    for( auto& entity: scene.getEntities()){
     TransformComponent* transform = entity->getComponent<TransformComponent>();
     if(transform != nullptr){
@@ -50,5 +51,6 @@ void drawColliderOverlay(Renderer& renderer, Scene& scene, const EditorState& ed
     }
     
    }
+}
 
 }

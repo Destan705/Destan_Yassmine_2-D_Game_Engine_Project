@@ -73,5 +73,10 @@
         collisions = collisionList;
     }
 
+    bool EditorState::getShowColliders()const{
+        return showColliders;
+    }
 
-
+    void EditorState::setShowColliders(const bool displayColliders){
+        showColliders=displayColliders;
+    }

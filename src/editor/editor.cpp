@@ -50,6 +50,12 @@ void  Editor::render(){
 
 void Editor::drawPanels(EditorState& editorState,Scene& scene,const AssetManager& assetManager){
     inspectorPanel.draw(editorState,scene, assetManager);
+
+    ImGui::Begin("Overlay");
+    bool show = editorState.getShowColliders();
+    ImGui::Checkbox("Show colliders", &show);
+    editorState.setShowColliders(show);
+    ImGui::End();
 }
 
 
