@@ -1,7 +1,9 @@
 #pragma once
 #include <SDL3/SDL.h>
 #include "inspector_panel.h"
-
+#include "log_buffer.h"
+#include "log_buffer.h"
+#include <cstdint>
 // Owns Dear ImGui for the editor build.
 // Created by the platform after the Renderer exists, destroyed before it.
 // ImGui headers are only included in editor.cpp, never here.
@@ -36,6 +38,8 @@ class Editor {
 
     InspectorPanel inspectorPanel;
 
-    
+    LogBuffer logBuffer;
+
+    std::uint64_t logListenerId=0;
 
 };

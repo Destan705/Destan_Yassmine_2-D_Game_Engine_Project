@@ -19,16 +19,23 @@ ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
 //A line that starts the drawing backend
 ImGui_ImplSDLRenderer3_Init(renderer);
 
+logListenerId = subscribeToLog(
+    [this](logger_level level, const std::string& message) {
+        logBuffer.add(level, message);
+    }
+);
+
 }
 
 Editor::~Editor() { 
+
+    unsubscribeFromLog(logListenerId);
 
     ImGui_ImplSDLRenderer3_Shutdown();
 
     ImGui_ImplSDL3_Shutdown();
 
     ImGui::DestroyContext();
-
 }
 
     // Starts a new ImGui frame. Call once per frame, after input is processed
