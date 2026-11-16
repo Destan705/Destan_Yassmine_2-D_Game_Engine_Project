@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <cstdint>
 
 class EditorState;
 
@@ -15,7 +16,7 @@ enum class SceneFileCommandType{
 };
 
 struct SceneFileCommand{
-    SceneFileCommandType type;
+    SceneFileCommandType type = SceneFileCommandType::None;
     std::string path;
 };
 
@@ -28,9 +29,12 @@ class SceneFilePanel{
         char savePathBuffer[1024] = {};
         bool standaloneSaveRequested = false;
 
+        std::uint64_t lastSceneGeneration = 0;
+
         void drawConfirmationPopup(const EditorState& editorState, SceneFileCommand& command);
 
         void drawSavePathPopup(const EditorState& editorState, SceneFileCommand& command);
+
 
     public:
         SceneFileCommand draw(const EditorState& editorState);

@@ -6,47 +6,86 @@
 SceneFileCommand SceneFilePanel::draw(const EditorState& editorState) {
     SceneFileCommand sceneFileCommand;
 
-    if (ImGui::Begin("SceneFile")) {
+    if (lastSceneGeneration != editorState.getSceneGeneration()){
+        pathBuffer[0] = '\0';
+        savePathBuffer[0] = '\0';
+        standaloneSaveRequested = false;
+        lastSceneGeneration = editorState.getSceneGeneration();
+    }
+
+    if (ImGui::Begin("Scene File")) {
 
         auto scenePath = editorState.getCurrentScenePath();
 
+        // Current scene information.
+        ImGui::Text("Current Scene");
+
         if (scenePath.has_value()) {
-            ImGui::TextUnformatted(scenePath.value().generic_string().c_str());
+            ImGui::TextUnformatted(scenePath->generic_string().c_str());
         } else {
             ImGui::Text("Untitled");
         }
 
-        editorState.isDirty() ? ImGui::Text("Scene has unsaved changes") : ImGui::Text("No unsaved changes");
-        
-        ImGui::BeginDisabled(!editorState.getPause() || editorState.getPendingAction() != PendingSceneAction::None || standaloneSaveRequested);
-        
-        ImGui::InputText("Path:", pathBuffer, sizeof(pathBuffer));
-
-        if (ImGui::Button("Open")){
-            sceneFileCommand.type = SceneFileCommandType::Open;
-            sceneFileCommand.path = std::string(pathBuffer);
+        if (editorState.isDirty()) {
+            ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.2f, 1.0f), "Scene has unsaved changes");
+        } else {
+            ImGui::TextDisabled("No unsaved changes");
         }
-        ImGui::SameLine();
-        if (ImGui::Button("Save")){
+
+        ImGui::Spacing();
+
+        ImGui::BeginDisabled(!editorState.getPause() || editorState.getPendingAction() != PendingSceneAction::None || standaloneSaveRequested);
+
+        // Save the currently active scene.
+        if (ImGui::Button("Save Current Scene")) {
             if (scenePath.has_value()) {
                 sceneFileCommand.type = SceneFileCommandType::Save;
             } else {
                 standaloneSaveRequested = true;
             }
         }
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        // Open or save to a different scene file.
+        ImGui::Text("Scene File Path");
+
+        ImGui::SetNextItemWidth(-1.0f);
+        ImGui::InputTextWithHint("##SceneFilePath", "scenes/example.json", pathBuffer, sizeof(pathBuffer));
+
+        if (ImGui::Button("Open")) {
+            sceneFileCommand.type = SceneFileCommandType::Open;
+            sceneFileCommand.path = std::string(pathBuffer);
+        }
+
         ImGui::SameLine();
-        if (ImGui::Button("Save As")){
+
+        if (ImGui::Button("Save As")) {
             sceneFileCommand.type = SceneFileCommandType::SaveAs;
             sceneFileCommand.path = std::string(pathBuffer);
         }
 
         ImGui::EndDisabled();
 
-        ImGui::TextUnformatted(feedbackMessage.c_str());
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        // Operation feedback.
+        if (!editorState.getPause()) {
+            ImGui::TextDisabled("Pause the engine to manage scene files.");
+        }
+
+        ImGui::TextWrapped("%s", feedbackMessage.c_str());
     }
+
     drawConfirmationPopup(editorState, sceneFileCommand);
     drawSavePathPopup(editorState, sceneFileCommand);
+
     ImGui::End();
+
     return sceneFileCommand;
 }
 
