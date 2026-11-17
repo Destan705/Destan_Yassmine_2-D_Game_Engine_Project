@@ -7,6 +7,7 @@
 #ifdef ENGINE_EDITOR
 #include "editor_state.h"
 #include "scene_file_panel.h"
+#include "engine_stats.h"
 #include <string>
 #endif
 
@@ -26,6 +27,6 @@ void beginEditorFrame();
 SceneFileCommand drawEditorPanels(Scene& scene, EditorState& editorState);
 void setSceneFileFeedback(const std::string& message);
 bool isStandaloneSaveRequested();
-void renderPlatform(Scene& scene, const EditorState& editorState);
+void renderPlatform(Scene& scene, const EditorState& editorState, StatsSnapshot stats);
 
 #endif

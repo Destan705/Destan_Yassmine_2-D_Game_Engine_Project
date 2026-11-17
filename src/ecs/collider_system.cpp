@@ -91,3 +91,13 @@ std::vector<ColliderSystem::CollisionPair> ColliderSystem::detectCollisions(Scen
     return collidingEntities;
 }
 
+std::size_t ColliderSystem::getValidColliderCount(Scene& scene) const {
+    std::size_t colliderCounter = 0;
+
+    for (const auto& entity : scene.getEntities()){
+        if (getWorldBounds(*entity).has_value()){
+            colliderCounter++;
+        }
+    }
+    return colliderCounter;
+}

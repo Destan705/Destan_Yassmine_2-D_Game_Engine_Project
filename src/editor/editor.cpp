@@ -69,6 +69,10 @@ SceneFileCommand Editor::drawPanels(EditorState& editorState, Scene& scene, Asse
     return sceneFilePanel.draw(editorState);
 }
 
+void Editor::drawStatsPanel(const StatsSnapshot& stats){
+    statsPanel.draw(stats);
+}
+
 
 // Scene File panel helpers.
 

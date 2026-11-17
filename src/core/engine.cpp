@@ -14,6 +14,8 @@
 #include "editor_state.h"
 #include "editor_actions.h"
 #include "scene_file_panel.h"
+#include "engine_stats.h"
+#include "asset_manager.h"
 #endif
 
 #include <chrono>
@@ -96,7 +98,6 @@ void engine() {
 
         float delta_time = 0.0f;
 
-        auto prev_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 
         {
             // Initialize engine systems.
@@ -109,6 +110,7 @@ void engine() {
             #ifdef ENGINE_EDITOR
 
             EditorState editorState;
+            EngineStats engineStats;
 
             #endif
 
@@ -140,10 +142,15 @@ void engine() {
             // Remember whether the player was inside the trigger.
             bool wasOverlapping = false;
 
+            #ifdef ENGINE_EDITOR
+            bool hasPreviousFrame = false;
+            #endif
+
+            auto prev_time = std::chrono::steady_clock::now();
 
             while (running) {
 
-                auto current_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+                auto current_time = std::chrono::steady_clock::now();
 
 
                 // 1. Process input and handle window-close requests.
@@ -175,8 +182,14 @@ void engine() {
 
 
                 // 2. Calculate delta time.
-                delta_time = (current_time - prev_time) / 1000.0f;
-
+                double elapsedSeconds = std::chrono::duration<double>(current_time - prev_time).count();
+                #ifdef ENGINE_EDITOR
+                if (hasPreviousFrame){
+                    engineStats.recordFrame(elapsedSeconds);
+                }
+                hasPreviousFrame = true;
+                #endif
+                delta_time = (float)elapsedSeconds;
                 bool simulate = true;
 
                 #ifdef ENGINE_EDITOR
@@ -231,8 +244,19 @@ void engine() {
                 // 7. Render the current Scene.
                 #ifdef ENGINE_EDITOR
 
+
+                StatsSnapshot stats;
+                stats.fps = engineStats.getFPS();
+                stats.averageFrameTimeMs = engineStats.getAverageFrameTimeMs();
+                stats.entityCount = sceneManager.getActiveScene().getEntities().size();
+                stats.validColliderCount = colliderSystem.getValidColliderCount(sceneManager.getActiveScene());
+                stats.overlapPairCount = collisionPairs.size();
+                stats.cachedTextureCount = getPlatformAssetManager().getCachedTextureCount();
+                
+
+
                 // Render the Scene, collider overlay and editor.
-                renderPlatform(sceneManager.getActiveScene(), editorState);
+                renderPlatform(sceneManager.getActiveScene(), editorState, stats);
 
                 // Process scene file commands at the frame boundary.
                 std::uint64_t previousGeneration = editorState.getSceneGeneration();

@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <string>
 #include <utility>
+#include <cstddef>
 
 class Renderer;
 
@@ -19,6 +20,7 @@ class AssetManager{
 
         std::pair<int, int> getOriginalDimensions(textureHandle handle) const; // Returns original texture dimensions
 
+        std::size_t getCachedTextureCount() const;
 
     private:
 

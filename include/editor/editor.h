@@ -5,6 +5,7 @@
 #include "hierarchy_panel.h"
 #include "scene_file_panel.h"
 #include "log_buffer.h"
+#include "stats_panel.h"
 #include <cstdint>
 #include <string>
 
@@ -30,6 +31,8 @@ public:
     // Draws the editor panels and returns scene file commands.
     SceneFileCommand drawPanels(EditorState& editorState, Scene& scene, AssetManager& assetManager);
 
+    void drawStatsPanel(const StatsSnapshot& stats);
+
     void setSceneFileFeedback(const std::string& message);
     bool isStandaloneSaveRequested() const;
 
@@ -39,6 +42,7 @@ private:
     InspectorPanel inspectorPanel;
     HierarchyPanel hierarchyPanel;
     SceneFilePanel sceneFilePanel;
+    StatsPanel statsPanel;
 
     LogBuffer logBuffer;
     std::uint64_t logListenerId = 0;

@@ -146,7 +146,7 @@ void renderPlatform(Scene& scene) {
     renderer->Present();
 }
 #ifdef ENGINE_EDITOR
-void renderPlatform(Scene& scene, const EditorState& editorState) {
+void renderPlatform(Scene& scene, const EditorState& editorState, StatsSnapshot stats) {
 
     if (renderer == nullptr) {
         logMessage(logger_level::Warning, "Renderer is not initialized!");
@@ -155,11 +155,12 @@ void renderPlatform(Scene& scene, const EditorState& editorState) {
 
     renderer->ClearScreen(Color{255, 255, 255, 255});
     scene.render(*renderer);
+    stats.spriteDrawCount = renderer->getSpriteDrawCount();
 
     
     drawColliderOverlay(*renderer,scene, editorState);
     if(editor!=nullptr){
-    
+    editor->drawStatsPanel(stats);
     editor->render();
     }
     

@@ -46,6 +46,8 @@ if(ENGINE_EDITOR)
         editor/scene_file_panel.cpp
         editor/collider_overlay.cpp
         editor/log_buffer.cpp
+        editor/engine_stats.cpp
+        editor/stats_panel.cpp
     )
 
     target_include_directories(game_engine PRIVATE ${PROJECT_SOURCE_DIR}/include/editor)
