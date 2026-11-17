@@ -52,6 +52,24 @@ void Renderer::DrawFilledRect(const Color& color, const Bounds& bounds) {
     SDL_RenderFillRect(renderer, &rect);
 }
 
+void Renderer::DrawRectOutline(const Color& color, const Bounds& bounds){
+    Uint8 r, g, b, a;     // 4 empty boxes
+    SDL_GetRenderDrawColor(renderer, &r, &g, &b, &a); // SDL fills them
+
+    SDL_SetRenderDrawColor(renderer, color.red, color.green, color.blue, color.alpha);
+
+    SDL_FRect rect;
+    rect.x = bounds.x;
+    rect.y = bounds.y;
+    rect.w = bounds.w;
+    rect.h = bounds.h;
+
+    SDL_RenderRect(renderer, &rect); // draws the outline of a rectangle  
+
+    SDL_SetRenderDrawColor(renderer, r, g, b, a); // restore the colour we saved
+
+}
+
 textureHandle Renderer::LoadTexture(const char* filePath) {
 
     // Load the BMP image into an SDL_Surface

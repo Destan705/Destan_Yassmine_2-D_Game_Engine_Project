@@ -36,6 +36,8 @@ class Renderer {
 
     SDL_Renderer* getSDLRenderer() const;
 
+    void DrawRectOutline(const Color& color, const Bounds& bounds);
+
   private:
     SDL_Renderer* renderer = nullptr;
     bool hasWarned = false;             // flag to track if the warning has been logged
