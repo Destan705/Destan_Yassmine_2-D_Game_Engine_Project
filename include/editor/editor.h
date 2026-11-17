@@ -3,6 +3,7 @@
 #include "inspector_panel.h"
 #include "log_buffer.h"
 #include "log_buffer.h"
+#include "console_panel.h"
 #include <cstdint>
 // Owns Dear ImGui for the editor build.
 // Created by the platform after the Renderer exists, destroyed before it.
@@ -41,5 +42,7 @@ class Editor {
     LogBuffer logBuffer;
 
     std::uint64_t logListenerId=0;
+
+    ConsolePanel consolePanel;
 
 };
