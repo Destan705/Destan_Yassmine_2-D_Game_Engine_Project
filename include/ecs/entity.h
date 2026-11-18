@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <typeinfo>
 #include <vector>
+#include <string>
 
 class Entity {
 
@@ -29,6 +30,10 @@ class Entity {
     void update(float deltaTime);
 
     void render(Renderer& renderer);
+
+    const std::string& getName()const;
+
+    void setName(const std::string& name);
 
     template <typename T>
     // For each component, check whether its actual type is T
@@ -65,4 +70,6 @@ class Entity {
     std::uint64_t id;
 
     std::vector<std::unique_ptr<Component>> components;
+
+    std::string entityName;
 };
