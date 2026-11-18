@@ -30,3 +30,15 @@ void Scene::render(Renderer& renderer) {
 const std::vector<std::unique_ptr<Entity>>& Scene::getEntities() const {
     return entities;
 }
+
+// Removes the entity with this ID. Returns false if no entity has it.
+// Never call this while looping over getEntities() (it changes the list).
+bool Scene::removeEntity(std::uint64_t id) {
+    for (auto it = entities.begin(); it != entities.end(); ++it) {
+        if ((*it)->getId() == id) {
+            entities.erase(it);   // the unique_ptr frees the Entity and its components
+            return true;
+        }
+    }
+    return false;
+}

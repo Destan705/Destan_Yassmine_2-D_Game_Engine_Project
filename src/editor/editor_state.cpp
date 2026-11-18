@@ -61,5 +61,15 @@
         dirty = false;
     }
 
+    void EditorState::requestDelete(std::uint64_t id) {
+        pendingDeleteId = id;
+    }
+
+    std::optional<std::uint64_t> EditorState::takePendingDelete() {
+        std::optional<std::uint64_t> request = pendingDeleteId;
+        pendingDeleteId.reset();   // so the same delete never runs twice
+        return request;
+    }
+
 
 

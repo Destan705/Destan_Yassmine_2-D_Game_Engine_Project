@@ -156,6 +156,18 @@ void engine() {
 
                 // 8. Handle save/reload at the frame boundary.
 
+                #ifdef ENGINE_EDITOR
+// Safe point: nothing is looping over the entities right now.
+if (auto deleteId = editorState.takePendingDelete()) {
+    if (sceneManager.getActiveScene().removeEntity(*deleteId)) {
+        if (editorState.getSelectedId() == deleteId) {
+            editorState.unselect();
+        }
+        editorState.markDirty();
+    }
+}
+#endif
+
                 // F5: Save the current Scene.
                 if (wasKeyPressed(Key::F5)) {
                     try {
