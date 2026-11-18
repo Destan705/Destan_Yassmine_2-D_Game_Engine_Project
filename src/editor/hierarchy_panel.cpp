@@ -4,6 +4,8 @@
 #include "scene.h"
 #include "imgui.h"
 #include "editor_actions.h"
+#include "entity.h"
+#include <cstdio>
 #include <string>
 #include <cstdint>
 
@@ -65,7 +67,8 @@ void HierarchyPanel::draw(EditorState& editorState, Scene* activeScene) {
                         std::to_string(entityId);
 
                     std::string entityLabel =
-                        "Entity " + std::to_string(entityId);
+                        entity->getName();
+
 
                     ImGui::PushID(uniqueId.c_str());
 
@@ -79,6 +82,35 @@ void HierarchyPanel::draw(EditorState& editorState, Scene* activeScene) {
                     ImGui::PopID();
                 }
             }
+
+            // Rename box: only when something is selected.
+    auto selected = editorState.getSelectedId();
+    if (selected.has_value()) {
+        // Find the selected entity in this scene.
+        Entity* target = nullptr;
+        for (const auto& entity : entities) {
+            if (entity->getId() == selected.value()) {
+                target = entity.get();
+                break;
+            }
+        }
+
+            if (target != nullptr) {
+                // Refill the box when the selection changes.
+                if (renameTargetId != selected) {
+                    std::snprintf(renameBuffer, sizeof(renameBuffer), "%s", target->getName().c_str());
+                    renameTargetId = selected;
+                }
+
+                ImGui::Separator();
+                ImGui::BeginDisabled(!editorState.getPause());
+                ImGui::InputText("Name", renameBuffer, sizeof(renameBuffer));
+                if (ImGui::Button("Rename")) {
+                    renameEntityAction(*target, renameBuffer, editorState);
+                }
+                ImGui::EndDisabled();
+            }
+        }
 
             // Clear selection when clicking empty panel space.
             bool clearSelection =
