@@ -22,3 +22,19 @@ EditResult applyTransformEdit(Entity& entity, float x, float y, float width, flo
     return EditResult::Applied;
     
 }
+
+std::uint64_t createEntityAction(Scene& scene, EditorState& editorState){
+
+    Entity& entity =scene.createEntity();
+
+    entity.addComponent<TransformComponent>();
+
+    entity.setName("Entity " + std::to_string(entity.getId()));
+
+    editorState.select(entity.getId());
+
+    editorState.markDirty();
+
+    return entity.getId();
+
+}

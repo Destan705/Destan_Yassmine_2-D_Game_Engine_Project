@@ -1,5 +1,7 @@
 #pragma once
 #include "entity.h"
+#include "scene.h"
+#include "editor_state.h"
 
 enum class EditResult{
 
@@ -10,3 +12,4 @@ Rejected
 };
 
 EditResult applyTransformEdit(Entity& entity, float x, float y, float width, float height);
+std::uint64_t createEntityAction(Scene& scene, EditorState& editorState);

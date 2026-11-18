@@ -3,6 +3,7 @@
 #include "editor_state.h"
 #include "scene.h"
 #include "imgui.h"
+#include "editor_actions.h"
 #include <string>
 #include <cstdint>
 
@@ -38,6 +39,16 @@ void HierarchyPanel::draw(EditorState& editorState, Scene* activeScene) {
         } else {
             std::string sceneName = activeScene->getSceneName();
             ImGui::Text("%s", sceneName.c_str());
+
+            ImGui::BeginDisabled(!editorState.getPause());
+
+            if (ImGui::Button("Create")){
+             createEntityAction(*activeScene, editorState);
+             
+            }
+
+            ImGui::EndDisabled();
+
 
             uint64_t sceneGeneration = editorState.getSceneGeneration();
             const auto& entities = activeScene->getEntities();
