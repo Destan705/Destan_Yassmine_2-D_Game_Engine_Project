@@ -57,7 +57,7 @@ void  Editor::render(){
 
 void Editor::drawPanels(EditorState& editorState,Scene& scene,const AssetManager& assetManager){
     inspectorPanel.draw(editorState,scene, assetManager);
-    consolePanel.draw(logBuffer);
+    consolePanel.draw(logBuffer, editorState);
 
     ImGui::Begin("Overlay");
     bool show = editorState.getShowColliders();
