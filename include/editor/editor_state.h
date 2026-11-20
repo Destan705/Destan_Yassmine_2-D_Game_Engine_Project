@@ -74,9 +74,7 @@ private:
     bool dirty = false;
 
     std::optional<std::uint64_t> pendingDeleteId;
-
-    std::optional<std::uint64_t> pendingDeleteId;
-
+    
     // Scene file management.
     std::optional<std::filesystem::path> currentScenePath = std::nullopt;
     PendingSceneAction pendingAction = PendingSceneAction::None;
