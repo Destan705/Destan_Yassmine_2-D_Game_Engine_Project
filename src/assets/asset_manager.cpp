@@ -102,3 +102,7 @@ std::pair<int, int> AssetManager::getOriginalDimensions(textureHandle handle) co
     return dimensions;
 
 }
+
+std::size_t AssetManager::getCachedTextureCount() const {
+    return pathToHandle.size();
+}

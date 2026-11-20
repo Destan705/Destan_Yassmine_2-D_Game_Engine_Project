@@ -1,4 +1,3 @@
-
 add_executable(game_engine
     main.cpp
 
@@ -27,18 +26,31 @@ add_executable(game_engine
     assets/asset_manager.cpp
 
     audio/audio_service.cpp
-
 )
 
 target_link_libraries(game_engine PRIVATE SDL3::SDL3)
 target_link_libraries(game_engine PRIVATE nlohmann_json::nlohmann_json)
 
-if (ENGINE_EDITOR)
-target_compile_definitions(game_engine PRIVATE ENGINE_EDITOR_ASSET_ROOT="${PROJECT_SOURCE_DIR}/assets")
-target_link_libraries(game_engine PRIVATE imgui_lib)
-target_compile_definitions(game_engine PRIVATE ENGINE_EDITOR)
-target_sources(game_engine PRIVATE editor/editor.cpp editor/editor_state.cpp editor/editor_actions.cpp editor/inspector_panel.cpp editor/hierarchy_panel.cpp editor/scene_file_panel.cpp)
-target_include_directories(game_engine PRIVATE ${PROJECT_SOURCE_DIR}/include/editor)
+if(ENGINE_EDITOR)
+    target_compile_definitions(game_engine PRIVATE ENGINE_EDITOR)
+    target_compile_definitions(game_engine PRIVATE ENGINE_EDITOR_ASSET_ROOT="${PROJECT_SOURCE_DIR}/assets")
+
+    target_link_libraries(game_engine PRIVATE imgui_lib)
+
+    target_sources(game_engine PRIVATE
+        editor/editor.cpp
+        editor/editor_state.cpp
+        editor/editor_actions.cpp
+        editor/inspector_panel.cpp
+        editor/hierarchy_panel.cpp
+        editor/scene_file_panel.cpp
+        editor/collider_overlay.cpp
+        editor/log_buffer.cpp
+        editor/engine_stats.cpp
+        editor/stats_panel.cpp
+    )
+
+    target_include_directories(game_engine PRIVATE ${PROJECT_SOURCE_DIR}/include/editor)
 endif()
 
 target_include_directories(game_engine PRIVATE

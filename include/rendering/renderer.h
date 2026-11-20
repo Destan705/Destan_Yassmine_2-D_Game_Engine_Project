@@ -4,6 +4,7 @@
 #include <vector>
 #include <utility>
 #include <optional>
+#include <cstddef>
 
 class Renderer {
   public:
@@ -36,8 +37,13 @@ class Renderer {
 
     SDL_Renderer* getSDLRenderer() const;
 
+    void DrawRectOutline(const Color& color, const Bounds& bounds);
+
+    std::size_t getSpriteDrawCount() const;
+
   private:
     SDL_Renderer* renderer = nullptr;
     bool hasWarned = false;             // flag to track if the warning has been logged
     std::vector<SDL_Texture*> textures; // the array of textures that the renderer can use to draw
+    std::size_t spriteDrawCount = 0;
 };

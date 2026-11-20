@@ -1,4 +1,3 @@
-
 #include "engine.h"
 
 #include "audio_service.h"
@@ -15,6 +14,8 @@
 #include "editor_state.h"
 #include "editor_actions.h"
 #include "scene_file_panel.h"
+#include "engine_stats.h"
+#include "asset_manager.h"
 #endif
 
 #include <chrono>
@@ -24,9 +25,11 @@
 #include <cstdint>
 #include <utility>
 
+
 void renderEngineFrame(SceneManager& sceneManager) {
     renderPlatform(sceneManager.getActiveScene());
 }
+
 
 #ifdef ENGINE_EDITOR
 
@@ -79,7 +82,9 @@ bool processSceneFileCommand(const SceneFileCommand& command, SceneManager& scen
 
 #endif
 
+
 void engine() {
+
     bool running = initializePlatform();
 
     if (!running) {
@@ -88,14 +93,11 @@ void engine() {
     }
 
     try {
+
         initializeInput();
 
         float delta_time = 0.0f;
 
-        auto prev_time =
-            std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now().time_since_epoch()
-            ).count();
 
         {
             // Initialize engine systems.
@@ -104,6 +106,13 @@ void engine() {
             ColliderSystem colliderSystem;
             SceneManager sceneManager(eventDispatcher);
             SceneSerializer sceneSerializer;
+
+            #ifdef ENGINE_EDITOR
+
+            EditorState editorState;
+            EngineStats engineStats;
+
+            #endif
 
 #ifdef ENGINE_EDITOR
             EditorState editorState;
@@ -119,6 +128,7 @@ void engine() {
 
             // Load the original demo Scene from JSON.
             sceneManager.setActiveScene(createGameScene(getPlatformAssetManager()));
+            sceneManager.setActiveScene(createGameScene(getPlatformAssetManager()));
 
 #ifdef ENGINE_EDITOR
             editorState.onSceneReplaced();
@@ -131,11 +141,16 @@ void engine() {
             // Remember whether the player was inside the trigger.
             bool wasOverlapping = false;
 
+            #ifdef ENGINE_EDITOR
+            bool hasPreviousFrame = false;
+            #endif
+
+            auto prev_time = std::chrono::steady_clock::now();
+
             while (running) {
-                auto current_time =
-                    std::chrono::duration_cast<std::chrono::milliseconds>(
-                        std::chrono::steady_clock::now().time_since_epoch()
-                    ).count();
+
+                auto current_time = std::chrono::steady_clock::now();
+
 
                 // 1. Process input and handle window-close requests.
                 bool keepRunning = processPlatformEvents();
@@ -159,9 +174,16 @@ void engine() {
 
                 beginEditorFrame();
 
-                // 2. Calculate delta time.
-                delta_time = (current_time - prev_time) / 1000.0f;
 
+                // 2. Calculate delta time.
+                double elapsedSeconds = std::chrono::duration<double>(current_time - prev_time).count();
+                #ifdef ENGINE_EDITOR
+                if (hasPreviousFrame){
+                    engineStats.recordFrame(elapsedSeconds);
+                }
+                hasPreviousFrame = true;
+                #endif
+                delta_time = (float)elapsedSeconds;
                 bool simulate = true;
 
 #ifdef ENGINE_EDITOR
@@ -176,10 +198,28 @@ void engine() {
                     sceneManager.update(delta_time);
                 }
 
+
+                // Draw editor panels before detecting collisions so
+                // Inspector edits are reflected in the collision snapshot.
+                #ifdef ENGINE_EDITOR
+
+                SceneFileCommand sceneFileCommand = drawEditorPanels(sceneManager.getActiveScene(), editorState);
+
+                #endif
+
+
                 // 5. Detect collisions.
                 auto collisionPairs = colliderSystem.detectCollisions(sceneManager.getActiveScene());
 
+                #ifdef ENGINE_EDITOR
+
+                editorState.setCollisions(collisionPairs);
+
+                #endif
+
+
                 // 6. React to new trigger overlaps.
+                bool justEntered = handleCollisions(collisionPairs, sceneManager.getActiveScene(), wasOverlapping);
                 bool justEntered = handleCollisions(collisionPairs, sceneManager.getActiveScene(), wasOverlapping);
 
                 if (justEntered && simulate) {
@@ -187,18 +227,29 @@ void engine() {
 
                     if (testSoundId != 0 && !audioService.play(testSoundId)) {
                         logMessage(logger_level::Warning, "Failed to play trigger sound");
+                    if (testSoundId != 0 && !audioService.play(testSoundId)) {
+                        logMessage(logger_level::Warning, "Failed to play trigger sound");
                     }
                 }
 
-#ifdef ENGINE_EDITOR
-                // Draw editor panels and collect scene file commands.
-                SceneFileCommand sceneFileCommand = drawEditorPanels(sceneManager.getActiveScene(), editorState);
-#endif
 
                 // 7. Render the current Scene.
-                renderEngineFrame(sceneManager);
+                renderEngineFrame(sceneManager);    
+                
+                #ifdef ENGINE_EDITOR
 
-#ifdef ENGINE_EDITOR
+                StatsSnapshot stats;
+                stats.fps = engineStats.getFPS();
+                stats.averageFrameTimeMs = engineStats.getAverageFrameTimeMs();
+                stats.entityCount = sceneManager.getActiveScene().getEntities().size();
+                stats.validColliderCount = colliderSystem.getValidColliderCount(sceneManager.getActiveScene());
+                stats.overlapPairCount = collisionPairs.size();
+                stats.cachedTextureCount = getPlatformAssetManager().getCachedTextureCount();
+                
+
+
+                // Render the Scene, collider overlay and editor.
+                renderPlatform(sceneManager.getActiveScene(), editorState, stats);
 
                 // 8. Apply pending entity deletion at the frame boundary.
                 // Nothing is currently iterating over the entity list.
@@ -215,6 +266,7 @@ void engine() {
                     }
                 }
 
+
                 // 9. Process Open, Save, Save As, and confirmation commands.
                 std::uint64_t previousGeneration = editorState.getSceneGeneration();
 
@@ -227,28 +279,43 @@ void engine() {
                     wasOverlapping = false;
                 }
 
-#else
+                #else
 
-                // 9. Legacy save/reload shortcuts for non-editor builds.
+                renderEngineFrame(sceneManager);
+
+                #endif
+
+
+                // 10. Handle legacy save/reload shortcuts in non-editor builds.
+                #ifndef ENGINE_EDITOR
 
                 // F5: Save the current Scene.
                 if (wasKeyPressed(Key::F5)) {
+
                     try {
+
                         sceneSerializer.save(sceneManager.getActiveScene(), savedScenePath, getPlatformAssetManager());
 
                         logMessage(logger_level::Info, "Scene saved to: " + savedScenePath.string());
 
                     } catch (const std::exception& e) {
+
                         logMessage(logger_level::Error, std::string("Failed to save Scene: ") + e.what());
                     }
                 }
 
+
                 // F9: Reload the saved Scene.
                 if (wasKeyPressed(Key::F9)) {
+
                     try {
+
                         if (!std::filesystem::exists(savedScenePath)) {
+
                             logMessage(logger_level::Warning, "No saved Scene found. Press F5 first.");
+
                         } else {
+
                             auto newScene = sceneSerializer.load(savedScenePath, getPlatformAssetManager());
 
                             sceneManager.setActiveScene(std::move(newScene));
@@ -260,6 +327,7 @@ void engine() {
                         }
 
                     } catch (const std::exception& e) {
+
                         logMessage(logger_level::Error, std::string("Failed to reload Scene: ") + e.what());
                     }
                 }
@@ -268,8 +336,9 @@ void engine() {
 
 #ifdef ENGINE_EDITOR
 
-                // 10. F1: Toggle pause only when no scene file operation is pending.
+                // 11. F1: Toggle pause only when no scene file operation is pending.
                 if (wasShortcutPressed(Key::F1) && editorState.getPendingAction() == PendingSceneAction::None && !isStandaloneSaveRequested()) {
+
                     if (editorState.getPause()) {
                         editorState.resume();
                     } else {

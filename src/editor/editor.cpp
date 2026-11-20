@@ -3,62 +3,83 @@
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
 #include "platform.h"
+#include "logger.h"
 
-Editor::Editor(SDL_Window* window, SDL_Renderer* renderer) { 
+Editor::Editor(SDL_Window* window, SDL_Renderer* renderer) {
 
-sdlRenderer = renderer;
+    sdlRenderer = renderer;
 
-IMGUI_CHECKVERSION();
-//creates context
-ImGui::CreateContext();
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
 
-//SETUP PLATFORM/BACKEND
+    // Initialize ImGui backends.
+    ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
+    ImGui_ImplSDLRenderer3_Init(renderer);
 
-//connect gui to SDL input
-ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
-//A line that starts the drawing backend
-ImGui_ImplSDLRenderer3_Init(renderer);
-
+    // Subscribe to engine logs.
+    logListenerId = subscribeToLog([this](logger_level level, const std::string& message) {
+        logBuffer.add(level, message);
+    });
 }
 
-Editor::~Editor() { 
+Editor::~Editor() {
+
+    unsubscribeFromLog(logListenerId);
 
     ImGui_ImplSDLRenderer3_Shutdown();
-
     ImGui_ImplSDL3_Shutdown();
-
     ImGui::DestroyContext();
-
 }
 
-    // Starts a new ImGui frame. Call once per frame, after input is processed
-    // and before any editor windows are built.
-void Editor::beginFrame(){
-        ImGui_ImplSDLRenderer3_NewFrame(); //the drawing backend
-        ImGui_ImplSDL3_NewFrame(); // the input backend
-        ImGui::NewFrame(); //ImGui itself
+
+// Start a new ImGui frame.
+
+void Editor::beginFrame() {
+    ImGui_ImplSDLRenderer3_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
 }
 
-    // Finishes the ImGui frame and draws the editor windows on top of the scene.
-    // Call after the scene is drawn and before Present().
-    
-void  Editor::render(){
-        ImGui::Render(); // turns everyhting in to a list of shapes to draw
-        ImGui_ImplSDLRenderer3_RenderDrawData( ImGui::GetDrawData(), sdlRenderer);
 
+// Render the editor windows.
+
+void Editor::render() {
+    ImGui::Render();
+    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), sdlRenderer);
 }
 
-SceneFileCommand Editor::drawPanels(EditorState& editorState,Scene& scene,  AssetManager& assetManager){
+
+// Draw all editor panels.
+
+SceneFileCommand Editor::drawPanels(EditorState& editorState, Scene& scene, AssetManager& assetManager) {
+
     hierarchyPanel.draw(editorState, &scene);
-    inspectorPanel.draw(editorState,scene, assetManager);
+    inspectorPanel.draw(editorState, scene, assetManager);
+
+    // Collider overlay controls.
+    if (ImGui::Begin("Overlay")) {
+        bool show = editorState.getShowColliders();
+        ImGui::Checkbox("Show colliders", &show);
+        editorState.setShowColliders(show);
+    }
+
+    ImGui::End();
+
+    // Draw the Scene File panel and return its command.
     return sceneFilePanel.draw(editorState);
 }
 
-void Editor::setSceneFileFeedback(const std::string& message){
+void Editor::drawStatsPanel(const StatsSnapshot& stats){
+    statsPanel.draw(stats);
+}
+
+
+// Scene File panel helpers.
+
+void Editor::setSceneFileFeedback(const std::string& message) {
     sceneFilePanel.setFeedbackMessage(message);
 }
 
 bool Editor::isStandaloneSaveRequested() const {
     return sceneFilePanel.isStandaloneSaveRequested();
 }
-

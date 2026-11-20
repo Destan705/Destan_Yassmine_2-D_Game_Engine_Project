@@ -35,6 +35,7 @@ void Renderer::Present() {
 void Renderer::ClearScreen(const Color& color) {
     SDL_SetRenderDrawColor(renderer, color.red, color.green, color.blue, color.alpha);
     SDL_RenderClear(renderer);
+    spriteDrawCount = 0;
 }
 
 void Renderer::DrawFilledRect(const Color& color, const Bounds& bounds) {
@@ -50,6 +51,24 @@ void Renderer::DrawFilledRect(const Color& color, const Bounds& bounds) {
 
     // Draw it (SDL wants the rectangle's address)
     SDL_RenderFillRect(renderer, &rect);
+}
+
+void Renderer::DrawRectOutline(const Color& color, const Bounds& bounds){
+    Uint8 r, g, b, a;     // 4 empty boxes
+    SDL_GetRenderDrawColor(renderer, &r, &g, &b, &a); // SDL fills them
+
+    SDL_SetRenderDrawColor(renderer, color.red, color.green, color.blue, color.alpha);
+
+    SDL_FRect rect;
+    rect.x = bounds.x;
+    rect.y = bounds.y;
+    rect.w = bounds.w;
+    rect.h = bounds.h;
+
+    SDL_RenderRect(renderer, &rect); // draws the outline of a rectangle  
+
+    SDL_SetRenderDrawColor(renderer, r, g, b, a); // restore the colour we saved
+
 }
 
 textureHandle Renderer::LoadTexture(const char* filePath) {
@@ -103,6 +122,7 @@ void Renderer::DrawTexture(textureHandle handle, const Bounds& bounds,
 
     // No source rectangle means draw the entire texture.
     if (!src.has_value()) {
+        spriteDrawCount++;
         SDL_RenderTexture(renderer, texture, nullptr, &destRect);
         return;
     }
@@ -134,7 +154,8 @@ void Renderer::DrawTexture(textureHandle handle, const Bounds& bounds,
     SDL_FRect srcRect{
         src->x, src->y, src->w, src->h
     };
-
+    
+    spriteDrawCount++;
     SDL_RenderTexture(renderer, texture, &srcRect, &destRect);
 }
 
@@ -163,4 +184,9 @@ std::pair<float,float> Renderer::getTextureDimensions(textureHandle textureHandl
 
 SDL_Renderer* Renderer::getSDLRenderer() const{
     return renderer;
+}
+
+
+std::size_t Renderer::getSpriteDrawCount() const {
+    return spriteDrawCount;
 }

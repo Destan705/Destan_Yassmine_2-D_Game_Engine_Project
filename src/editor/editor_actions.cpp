@@ -17,6 +17,10 @@
 #include <memory>
 #include <string>
 
+
+<<<<<<<<< Temporary merge branch 1
+    TransformComponent* transform = entity.getComponent<TransformComponent>();
+=========
 EditResult applyTransformEdit(Entity& entity, float x, float y, float width, float height) {
 
     TransformComponent* transform = entity.getComponent<TransformComponent>();

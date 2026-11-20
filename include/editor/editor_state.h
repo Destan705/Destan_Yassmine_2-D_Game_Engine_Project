@@ -1,100 +1,89 @@
 #pragma once
+
 #include <cstdint>
 #include <optional>
 #include <filesystem>
+#include <vector>
+#include <utility>
 
 enum class PendingSceneAction {
-  None,
-  Open,
-  Close
+    None,
+    Open,
+    Close
 };
 
 // Shared editor information that every panel reads.
 // Plain C++ (no ImGui), so it is easy to unit-test.
 class EditorState {
 
-  public:
-    // Selects the entity with this ID (e.g. when it's clicked in the Hierarchy).
+public:
+    // Entity selection.
     void select(std::uint64_t entityId);
-
-    // Clears the selection, so nothing is selected.
     void unselect();
-
-    // Returns the selected entity's ID, or nothing (std::nullopt) if none is selected.
-    // The caller looks the ID up in the active Scene; we never keep an Entity pointer.
     std::optional<std::uint64_t> getSelectedId() const;
 
-    // Call after a new Scene replaces the old one.
-    // Clears the selection and increases the scene generation by 1.
+    // Scene replacement.
     void onSceneReplaced();
-
-    // Returns how many times the scene has been replaced.
-    // Panels compare it to notice a scene change (e.g. to reset half-typed values).
     std::uint64_t getSceneGeneration() const;
 
-    // Returns true if the game is paused.
+    // Simulation state.
     bool getPause() const;
-
-    // Pauses the game: no gameplay updates or gameplay sounds.
     void pause();
-
-    // Resumes the game.
     void resume();
 
-    // return whether the scene is dirty
+    // Dirty state.
     bool isDirty() const;
-
-    // marks a scene as dirty
     void markDirty();
+    void clearDirty();
 
-    // unmarks the scene as dirty
-    void clearDirty(); 
-
+    // Current scene file path.
     std::optional<std::filesystem::path> getCurrentScenePath() const;
-
     void setCurrentScenePath(std::filesystem::path path);
-
     void clearCurrentScenePath();
 
+    // Pending scene file operations.
     PendingSceneAction getPendingAction() const;
-
     std::optional<std::filesystem::path> getPendingOpenPath() const;
-
     void setPendingOpen(const std::filesystem::path& path);
-
     void setPendingClose();
-
     void clearPendingAction();
 
+    // Save path popup state.
     bool isAwaitingSavePath() const;
-
     void setAwaitingSavePath(bool awaiting);
 
 
     void requestDelete(std::uint64_t id);
 
     std::optional<std::uint64_t> takePendingDelete();
-  private:
-    // ID of the selected entity, or empty if nothing is selected.
-    std::optional<std::uint64_t> selectId;
+    // Current collision snapshot.
+    const std::vector<std::pair<std::uint64_t, std::uint64_t>>& getCollisions() const;
+    void setCollisions(const std::vector<std::pair<std::uint64_t, std::uint64_t>>& collisionList);
 
-    // Scene "version": goes up by 1 every time the scene is replaced.
+    // Collider overlay visibility.
+    bool getShowColliders() const;
+    void setShowColliders(const bool displayColliders);
+
+private:
+    // Entity selection and scene generation.
+    std::optional<std::uint64_t> selectId;
     std::uint64_t sceneGeneration = 0;
 
-    // Editor sessions start paused, so the game doesn't overwrite your edits.
+    // Simulation and dirty state.
     bool paused = true;
-
-    //wether changes in a scene is saved or not
     bool dirty = false;
 
     std::optional<std::uint64_t> pendingDeleteId;
 
-    // Current path != path user is typing into the panel 
+    std::optional<std::uint64_t> pendingDeleteId;
+
+    // Scene file management.
     std::optional<std::filesystem::path> currentScenePath = std::nullopt;
-
     PendingSceneAction pendingAction = PendingSceneAction::None;
-
     std::optional<std::filesystem::path> pendingOpenPath = std::nullopt;
-
     bool awaitingSavePath = false;
+
+    // Collider overlay state.
+    std::vector<std::pair<std::uint64_t, std::uint64_t>> collisions;
+    bool showColliders = true;
 };
