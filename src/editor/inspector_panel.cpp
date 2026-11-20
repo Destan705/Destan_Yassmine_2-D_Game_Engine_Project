@@ -43,6 +43,7 @@ void InspectorPanel::draw(EditorState& editorState, Scene& scene, AssetManager& 
 
             } else {
                 ImGui::Text("Entity %llu", static_cast<unsigned long long>(id));
+                ImGui::Text("Name: %s", selected->getName().c_str());
 
                 TransformComponent* transformComponent = selected->getComponent<TransformComponent>();
                 ColliderComponent* colliderComponent = selected->getComponent<ColliderComponent>();

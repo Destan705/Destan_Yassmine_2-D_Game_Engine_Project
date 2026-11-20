@@ -2,13 +2,17 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, phase4]
   pull_request:
-    branches: [main, phase1, phase2, phase3]
+    branches: [main, phase1, phase2, phase3, phase4]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        editor: ['ON', 'OFF']
 
     steps:
       - name: Check out code
@@ -27,11 +31,11 @@ jobs:
             libudev-dev fcitx-libs-dev \
             xvfb xauth libgl1-mesa-dri
 
-      - name: Configure
-        run: cmake -B build
+      - name: Configure (Editor ${{ matrix.editor }})
+        run: cmake -S . -B build -DENGINE_EDITOR=${{ matrix.editor }}
 
       - name: Build
-        run: cmake --build build
+        run: cmake --build build --parallel 4
 
       - name: Run static analysis
         run: |
@@ -40,7 +44,7 @@ jobs:
 
       - name: Run tests
         env:
-          SDL_VIDEO_DRIVER: x11
-          SDL_AUDIO_DRIVER: dummy
-          LIBGL_ALWAYS_SOFTWARE: "1"
+          SDL_VIDEODRIVER: x11
+          SDL_AUDIODRIVER: dummy
+          LIBGL_ALWAYS_SOFTWARE: '1'
         run: xvfb-run -a -s "-screen 0 1024x768x24 +extension GLX" ctest --test-dir build --output-on-failure

@@ -1,17 +1,6 @@
 {
     "entities": [
         {
-            "sprite": {
-                "texture": "test.bmp"
-            },
-            "transform": {
-                "height": 50.0,
-                "width": 500.0,
-                "x": 150.0,
-                "y": 150.0
-            }
-        },
-        {
             "collider": {
                 "enabled": true,
                 "height": 50.0,
@@ -19,6 +8,7 @@
                 "offsetY": 0.0,
                 "width": 50.0
             },
+            "name": "Entity 2",
             "sprite": {
                 "texture": "test.bmp"
             },
@@ -67,14 +57,24 @@
                 "offsetY": 0.0,
                 "width": 32.0
             },
+            "name": "Entity 3",
             "sprite": {
                 "texture": "anim_sheet.bmp"
             },
             "transform": {
                 "height": 32.0,
                 "width": 32.0,
-                "x": 300.0,
-                "y": 150.0
+                "x": 326.6131896972656,
+                "y": 299.9927978515625
+            }
+        },
+        {
+            "name": "Entity 6",
+            "transform": {
+                "height": 333.0,
+                "width": 330.0,
+                "x": 0.0,
+                "y": 0.0
             }
         }
     ],

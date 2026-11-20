@@ -1,12 +1,12 @@
 # Scene File Format (version 1)
 
-> **Status:** matches the `phase3` branch. Supported components: Transform, Sprite, Collider, Animation. Sound is **not** stored in scene files.
+> **Status:** updated for the Phase 4 editor scene format. Supported components: Transform, Sprite, Collider, Animation. Sound is **not** stored in scene files.
 
 A scene file is a JSON file that describes **what is in a scene**: its name, and an ordered list of entities with their components. `SceneSerializer::load` turns it into a `Scene`; `SceneSerializer::save` writes a `Scene` back.
 
 Example file: [`assets/scenes/phase3-demo.json`](../assets/scenes/phase3-demo.json).
 
-> **Not wired into startup yet:** the running demo still builds its scene in code (`createGameScene()` in `src/core/game.cpp`). Loading this file at startup is part of the integration work.
+> **Integrated:** `createGameScene()` loads the Phase 3 demo JSON at startup, and the editor can Open, Save, and Save As scene files.
 
 ## Complete example
 
@@ -66,7 +66,7 @@ Entities 1 and 2 use the same texture path, so the `AssetManager` loads `test.bm
 | ----------- | ------ | -------- | ---------------------------------------------- |
 | `name`      | string | no       | `Entity::getName()` (fallback `"Entity <id>"`) |
 | `transform` | object | yes      | `Transform`                                    |
-| `sprite`    | object | yes      | `Sprite`                                       |
+| `sprite`    | object | no       | `Sprite`                                       |
 | `collider`  | object | no       | `ColliderComponent`                            |
 | `animation` | object | no       | `AnimationComponent`                           |
 
@@ -144,7 +144,7 @@ assets/scenes/level.json: entity 2 collider: 'width' must be greater than zero
 | Entity name not a string                | `"name": 5`                      | `'name' is not a string`                   |
 | `entities` missing or not an array      |                                  | `Entities is missing or not an array`      |
 | Entity isn't an object                  | `5`                              | `entity 0: must be an object`              |
-| Missing component                       | no `"transform"` / `"sprite"`    | `'transform' is missing or not an object`  |
+| Missing component                       | no `"transform"`    | `'transform' is missing or not an object`  |
 | Missing or non-number value             | `"x": "100"`                     | `'x' is missing or not a number`           |
 | Infinite / NaN value                    |                                  | `must be finite`                           |
 | Texture not a string                    | `"texture": 3`                   | `'texture' is missing or not a string`     |
@@ -191,14 +191,14 @@ serializer.save(sceneManager.getActiveScene(), "my-level.json", assets);
 
 What `save` does, in order:
 
-1. Builds JSON from `scene.getEntities()`: each entity's `name`, `Transform`, `Sprite` (handle → path with `AssetManager::getPath`), and, if present, `ColliderComponent` and `AnimationComponent`.
+1. Builds JSON from `scene.getEntities()`: each entity's `name`, required `Transform`, and optional `Sprite` (handle → path with `AssetManager::getPath`), `ColliderComponent`, and `AnimationComponent`.
 2. Writes it (indented) to a temporary file, `<destination>.tmp`.
 3. Checks the write succeeded; otherwise deletes the temp file and throws.
 4. Replaces the destination with `std::filesystem::rename`.
 
 If any step fails, `save` throws `std::runtime_error` and the **previous destination file is unchanged**.
 
-Requirements: every entity must have a `Transform` and a `Sprite` whose texture was loaded through the same `AssetManager`; otherwise `save` throws.
+Requirements: every entity must have a `Transform`. `Sprite` is optional; if present, its texture must be known to the `AssetManager`. An `AnimationComponent` requires a `SpriteComponent`.
 
 ### What is never saved
 
@@ -253,5 +253,5 @@ e.addComponent<ColliderComponent>(0.0f, 0.0f, 32.0f, 32.0f); // enabled defaults
 ## Not supported in version 1
 
 - **Sound:** audio is played by `AudioService`, not stored in scene files.
-- **Entities without a sprite:** `sprite` is required on every entity.
+- **Entities without a sprite:** `sprite` is optional; `transform` is required. `animation` requires `sprite`.
 - **Multiple colliders or animations per entity:** at most one of each component type.

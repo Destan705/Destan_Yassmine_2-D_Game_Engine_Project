@@ -1,56 +1,46 @@
 #include "collider_overlay.h"
-#include "transform_component.h"
 #include "collider_component.h"
+#include "renderer.h"
+#include "transform_component.h"
+
 #include <cmath>
 
+std::vector<ColliderOutline> collectColliderOutlines(Scene& scene,
+                                                      const EditorState& editorState) {
+    std::vector<ColliderOutline> outlines;
+    if (!editorState.getShowColliders()) return outlines;
 
-void drawColliderOverlay(Renderer& renderer, Scene& scene, const EditorState& editorState){
-    if (editorState.getShowColliders()){
-   for( auto& entity: scene.getEntities()){
-    TransformComponent* transform = entity->getComponent<TransformComponent>();
-    if(transform != nullptr){
-    
-    ColliderComponent* collider = entity->getComponent<ColliderComponent>();
+    for (const auto& entity : scene.getEntities()) {
+        const auto* transform = entity->getComponent<TransformComponent>();
+        const auto* collider = entity->getComponent<ColliderComponent>();
+        if (!transform || !collider || !collider->isEnabled()) continue;
 
-        if(collider != nullptr && collider->isEnabled()){
-            
-            float offsetX= collider->getOffsetX();
-            float offsetY= collider->getOffsetY();
-           
-            float x_Entity= transform->x;
-            float y_Entity= transform->y;
+        const float x = transform->x + collider->getOffsetX();
+        const float y = transform->y + collider->getOffsetY();
+        const float w = collider->getWidth();
+        const float h = collider->getHeight();
+        if (!std::isfinite(x) || !std::isfinite(y) ||
+            !std::isfinite(w) || !std::isfinite(h) ||
+            w <= 0.0f || h <= 0.0f ||
+            !std::isfinite(x + w) || !std::isfinite(y + h)) continue;
 
-            float x= offsetX+x_Entity;
-            float y= offsetY+y_Entity;
-
-            float w =  collider->getWidth();
-            float h =  collider->getHeight();
-
-
-            if(std::isfinite(x)&&std::isfinite(y)&&std::isfinite(w)&&std::isfinite(h)){
-            Bounds box{ x, y, w, h };
-
-            Color color = Color{0, 255, 0, 255};
-
-
-            for(auto& collision : editorState.getCollisions()){
-                if(collision.first==entity->getId()||collision.second==entity->getId()){
-                    color = Color{255, 0, 0, 255}; 
-                }
-               
+        Color color{0, 255, 0, 255};
+        for (const auto& pair : editorState.getCollisions()) {
+            if (pair.first == entity->getId() || pair.second == entity->getId()) {
+                color = Color{255, 0, 0, 255};
+                break;
             }
-
-            if(editorState.getSelectedId() == entity->getId()){
-               color = Color{255, 255, 0, 255};
-            }
-
-            renderer.DrawRectOutline(color, box);
         }
-
+        if (editorState.getSelectedId() == entity->getId()) {
+            color = Color{255, 255, 0, 255};
         }
+        outlines.push_back({entity->getId(), Bounds{x, y, w, h}, color});
     }
-    
-   }
+    return outlines;
 }
 
+void drawColliderOverlay(Renderer& renderer, Scene& scene, const EditorState& editorState) {
+    for (const auto& outline : collectColliderOutlines(scene, editorState)) {
+        renderer.DrawRectOutline(outline.color, outline.bounds);
+    }
 }

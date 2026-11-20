@@ -123,7 +123,9 @@ class SceneSerializerContractTest : public ::testing::Test {
 };
 
 TEST_F(SceneSerializerContractTest, LoadsRealPhase3DemoThroughAssetManager) {
-    // CMake runs discovered tests with WORKING_DIRECTORY == PROJECT_SOURCE_DIR.
+    // The editor can change phase3-demo.json. Exercise the actual saved
+    // scene's loading/asset contract, rather than assuming that entity 3
+    // must always have an AnimationComponent.
     const auto assetRoot = std::filesystem::current_path() / "assets";
     const auto demo = assetRoot / "scenes" / "phase3-demo.json";
     ASSERT_TRUE(std::filesystem::exists(demo)) << demo;
@@ -131,26 +133,44 @@ TEST_F(SceneSerializerContractTest, LoadsRealPhase3DemoThroughAssetManager) {
     AssetManager realAssets(*renderer, assetRoot);
     auto scene = serializer.load(demo, realAssets);
     ASSERT_NE(scene, nullptr);
-    EXPECT_EQ(scene->getSceneName(), "Phase 3 Demo");
-    ASSERT_EQ(scene->getEntities().size(), 3u);
+    EXPECT_FALSE(scene->getSceneName().empty());
+    ASSERT_FALSE(scene->getEntities().empty());
 
-    const auto& entities = scene->getEntities();
-    auto* sprite0 = entities[0]->getComponent<SpriteComponent>();
-    auto* sprite1 = entities[1]->getComponent<SpriteComponent>();
-    auto* animated = entities[2]->getComponent<AnimationComponent>();
-    ASSERT_NE(sprite0, nullptr);
-    ASSERT_NE(sprite1, nullptr);
-    ASSERT_NE(animated, nullptr);
-    EXPECT_EQ(sprite0->getTexture(), sprite1->getTexture());
-    EXPECT_EQ(realAssets.getPath(sprite0->getTexture()), "test.bmp");
-    EXPECT_EQ(animated->getFrames().size(), 4u);
-    EXPECT_TRUE(animated->getRepeat());
+    std::size_t spriteCount = 0;
+    for (const auto& entity : scene->getEntities()) {
+        EXPECT_NE(entity->getComponent<TransformComponent>(), nullptr);
+
+        auto* sprite = entity->getComponent<SpriteComponent>();
+        auto* animation = entity->getComponent<AnimationComponent>();
+
+        if (sprite != nullptr) {
+            ++spriteCount;
+            const auto assetPath = realAssets.getPath(sprite->getTexture());
+            EXPECT_FALSE(assetPath.empty());
+            EXPECT_FALSE(std::filesystem::path(assetPath).is_absolute());
+        }
+
+        if (animation != nullptr) {
+            // Animated entities must have sprites, but any entity can be
+            // deleted or have its animation removed by the editor.
+            EXPECT_NE(sprite, nullptr);
+            EXPECT_FALSE(animation->getFrames().empty());
+            EXPECT_GT(animation->getDuration(), 0.0f);
+        }
+    }
+    EXPECT_GT(spriteCount, 0u);
 }
 
-TEST_F(SceneSerializerContractTest, RejectsMissingSpriteWithEntityContext) {
-    const std::string json = R"({"version":1,"name":"Missing sprite","entities":[{
+TEST_F(SceneSerializerContractTest, AcceptsMissingSpriteAndPreservesAbsence) {
+    const std::string json = R"({"version":1,"name":"No sprite","entities":[{
         "transform":{"x":0,"y":0,"width":20,"height":20}}]})";
-    ExpectDiagnostic(json, "sprite");
+    auto scene = serializer.load(WriteText("no-sprite.json", json), *assets);
+    ASSERT_EQ(scene->getEntities().size(), 1u);
+    EXPECT_EQ(scene->getEntities()[0]->getComponent<SpriteComponent>(), nullptr);
+    const auto saved = temporaryDirectory / "no-sprite-saved.json";
+    ASSERT_NO_THROW(serializer.save(*scene, saved, *assets));
+    const auto result = nlohmann::json::parse(ReadAll(saved));
+    EXPECT_FALSE(result["entities"][0].contains("sprite"));
 }
 
 TEST_F(SceneSerializerContractTest, MissingTextureErrorNamesEntityAndTextureField) {

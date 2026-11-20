@@ -38,7 +38,7 @@ bool initializePlatform() {
     logMessage(logger_level::Info, "SDL3 initialized successfully!");
 
     // Create a window
-    window = SDL_CreateWindow("My SDL3 Window", 800, 600, SDL_WINDOW_OPENGL);
+    window = SDL_CreateWindow("My SDL3 Window", 800, 600, SDL_WINDOW_RESIZABLE);
 
     if (window == nullptr) {
         logMessage(logger_level::Error,

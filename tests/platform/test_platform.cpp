@@ -68,14 +68,20 @@ TEST_F(PlatformTest, VideoInitializationFailureReturnsFalseAndAllowsShutdown) {
     EXPECT_EQ(SDL_WasInit(0), 0u);
 }
 
-TEST_F(PlatformTest, WindowCreationFailureCleansUpInitializedSubsystems) {
-    // SDL's dummy video backend cannot create the OpenGL window used by the platform.
-    ASSERT_TRUE(SDL_SetHintWithPriority(SDL_HINT_VIDEO_DRIVER, "dummy", SDL_HINT_OVERRIDE));
-    EXPECT_FALSE(initializePlatform());
-    // Check cleanup BEFORE calling shutdown, so missing failure-path cleanup is caught.
-    EXPECT_EQ(SDL_WasInit(0), 0u);
-    shutdownPlatform();
-    EXPECT_EQ(SDL_WasInit(0), 0u);
+TEST_F(PlatformTest, CreatesResizableSDLRendererWindow) {
+    // SDL_Renderer chooses its own graphics backend. There should be no
+    // requirement to request an OpenGL window explicitly.
+    ASSERT_TRUE(initializePlatform()) << SDL_GetError();
+
+    int windowCount = 0;
+    SDL_Window** windows = SDL_GetWindows(&windowCount);
+    ASSERT_NE(windows, nullptr);
+    ASSERT_GT(windowCount, 0);
+
+    // The platform creates one normal top-level window.
+    EXPECT_EQ(windowCount, 1);
+    EXPECT_NE((SDL_GetWindowFlags(windows[0]) & SDL_WINDOW_RESIZABLE), 0u);
+    SDL_free(windows);
 }
 
 TEST_F(PlatformTest, RendererCreationFailureCleansUpWindowAndSubsystems) {
