@@ -49,12 +49,13 @@ void Editor::render() {
 }
 
 
-// Draw all editor panels.
+// Draw all editor panels
 
 SceneFileCommand Editor::drawPanels(EditorState& editorState, Scene& scene, AssetManager& assetManager) {
 
     hierarchyPanel.draw(editorState, &scene);
     inspectorPanel.draw(editorState, scene, assetManager);
+    consolePanel.draw(logBuffer, editorState);
 
     // Collider overlay controls.
     if (ImGui::Begin("Overlay")) {

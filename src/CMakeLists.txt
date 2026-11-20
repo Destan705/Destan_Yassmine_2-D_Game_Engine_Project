@@ -45,7 +45,7 @@ if(ENGINE_EDITOR)
         editor/hierarchy_panel.cpp
         editor/scene_file_panel.cpp
         editor/collider_overlay.cpp
-        editor/log_buffer.cpp
+        editor/log_buffer.cpp editor/console_panel.cpp
         editor/engine_stats.cpp
         editor/stats_panel.cpp
     )

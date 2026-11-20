@@ -6,6 +6,7 @@
 #include "scene_file_panel.h"
 #include "log_buffer.h"
 #include "stats_panel.h"
+#include "console_panel.h"
 #include <cstdint>
 #include <string>
 
@@ -46,4 +47,7 @@ private:
 
     LogBuffer logBuffer;
     std::uint64_t logListenerId = 0;
+    
+    ConsolePanel consolePanel;
+
 };
