@@ -70,6 +70,10 @@ class EditorState {
 
     void setAwaitingSavePath(bool awaiting);
 
+
+    void requestDelete(std::uint64_t id);
+
+    std::optional<std::uint64_t> takePendingDelete();
   private:
     // ID of the selected entity, or empty if nothing is selected.
     std::optional<std::uint64_t> selectId;
@@ -82,6 +86,8 @@ class EditorState {
 
     //wether changes in a scene is saved or not
     bool dirty = false;
+
+    std::optional<std::uint64_t> pendingDeleteId;
 
     // Current path != path user is typing into the panel 
     std::optional<std::filesystem::path> currentScenePath = std::nullopt;

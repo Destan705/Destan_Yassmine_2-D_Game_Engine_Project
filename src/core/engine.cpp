@@ -22,6 +22,7 @@
 #include <filesystem>
 #include <string>
 #include <cstdint>
+#include <utility>
 
 void renderEngineFrame(SceneManager& sceneManager) {
     renderPlatform(sceneManager.getActiveScene());
@@ -82,10 +83,7 @@ void engine() {
     bool running = initializePlatform();
 
     if (!running) {
-        logMessage(
-            logger_level::Error,
-            "Error occurred while initializing engine"
-        );
+        logMessage(logger_level::Error, "Error occurred while initializing engine");
         return;
     }
 
@@ -107,36 +105,28 @@ void engine() {
             SceneManager sceneManager(eventDispatcher);
             SceneSerializer sceneSerializer;
 
-            #ifdef ENGINE_EDITOR
-           EditorState editorState;
-            #endif
-
+#ifdef ENGINE_EDITOR
+            EditorState editorState;
+#endif
 
             // Save beside the demo assets, not in the working directory.
-            #ifndef ENGINE_EDITOR
-
+#ifndef ENGINE_EDITOR
             const std::filesystem::path savedScenePath = getAssetRootPath() / "scenes/phase3-demo-saved.json";
-
-            #endif
+#endif
 
             // Load the trigger sound once.
             const auto testSoundId = audioService.loadWav("audio/test.wav");
 
             // Load the original demo Scene from JSON.
-            sceneManager.setActiveScene(
-                createGameScene(getPlatformAssetManager())
-            );
+            sceneManager.setActiveScene(createGameScene(getPlatformAssetManager()));
 
-            #ifdef ENGINE_EDITOR
-
+#ifdef ENGINE_EDITOR
             editorState.onSceneReplaced();
             editorState.setCurrentScenePath("scenes/phase3-demo.json");
             editorState.clearDirty();
-
-            #endif
+#endif
 
             sceneManager.update(0.0f);
-
 
             // Remember whether the player was inside the trigger.
             bool wasOverlapping = false;
@@ -152,10 +142,8 @@ void engine() {
 
                 if (!keepRunning) {
 
-                    #ifdef ENGINE_EDITOR
-
+#ifdef ENGINE_EDITOR
                     if (editorState.getPendingAction() == PendingSceneAction::None && !isStandaloneSaveRequested()) {
-
                         SceneRequestResult closeResult = requestClose(editorState);
 
                         setSceneFileFeedback(closeResult.message);
@@ -164,12 +152,9 @@ void engine() {
                             break;
                         }
                     }
-
-                    #else
-
+#else
                     break;
-
-                    #endif
+#endif
                 }
 
                 beginEditorFrame();
@@ -179,73 +164,72 @@ void engine() {
 
                 bool simulate = true;
 
-                #ifdef ENGINE_EDITOR
-                    
+#ifdef ENGINE_EDITOR
                 simulate = !editorState.getPause();
+#endif
 
-                #endif
+                if (simulate) {
+                    // 3. Move player using keyboard input.
+                    updatePlayerMovement(sceneManager.getActiveScene(), delta_time);
 
-                if(simulate==true){
-
-                // 3. Move player using keyboard input.
-                updatePlayerMovement(
-                    sceneManager.getActiveScene(),
-                    delta_time
-                );
-
-                // 4. Update Scene and Components.
-                sceneManager.update(delta_time);
-            }
+                    // 4. Update Scene and Components.
+                    sceneManager.update(delta_time);
+                }
 
                 // 5. Detect collisions.
-                auto collisionPairs = colliderSystem.detectCollisions(
-                    sceneManager.getActiveScene()
-                );
-
+                auto collisionPairs = colliderSystem.detectCollisions(sceneManager.getActiveScene());
 
                 // 6. React to new trigger overlaps.
-                bool justEntered = handleCollisions(
-                     collisionPairs, sceneManager.getActiveScene(),
-                    wasOverlapping
-                );
+                bool justEntered = handleCollisions(collisionPairs, sceneManager.getActiveScene(), wasOverlapping);
 
-                if (justEntered && simulate==true) {
-                    logMessage(
-                        logger_level::Info,
-                        "Player entered trigger!"
-                    );
+                if (justEntered && simulate) {
+                    logMessage(logger_level::Info, "Player entered trigger!");
 
-                    if (testSoundId != 0 &&
-                        !audioService.play(testSoundId)) {
-                        logMessage(
-                            logger_level::Warning,
-                            "Failed to play trigger sound"
-                        );
+                    if (testSoundId != 0 && !audioService.play(testSoundId)) {
+                        logMessage(logger_level::Warning, "Failed to play trigger sound");
                     }
                 }
-                
-                #ifdef ENGINE_EDITOR
+
+#ifdef ENGINE_EDITOR
+                // Draw editor panels and collect scene file commands.
                 SceneFileCommand sceneFileCommand = drawEditorPanels(sceneManager.getActiveScene(), editorState);
-                #endif
+#endif
 
                 // 7. Render the current Scene.
-                renderEngineFrame(sceneManager);    
-                
-                #ifdef ENGINE_EDITOR
+                renderEngineFrame(sceneManager);
+
+#ifdef ENGINE_EDITOR
+
+                // 8. Apply pending entity deletion at the frame boundary.
+                // Nothing is currently iterating over the entity list.
+                // Delete before processing scene file commands so Save
+                // captures the updated Scene.
+
+                if (auto deleteId = editorState.takePendingDelete()) {
+                    if (sceneManager.getActiveScene().removeEntity(*deleteId)) {
+                        if (editorState.getSelectedId() == deleteId) {
+                            editorState.unselect();
+                        }
+
+                        editorState.markDirty();
+                    }
+                }
+
+                // 9. Process Open, Save, Save As, and confirmation commands.
                 std::uint64_t previousGeneration = editorState.getSceneGeneration();
 
                 if (processSceneFileCommand(sceneFileCommand, sceneManager, sceneSerializer, getPlatformAssetManager(), editorState, getAssetRootPath())) {
                     break;
                 }
 
+                // Forget overlaps belonging to a replaced Scene.
                 if (previousGeneration != editorState.getSceneGeneration()) {
                     wasOverlapping = false;
                 }
-                #endif
-                // 8. Handle save/reload at the frame boundary.
 
-                
-                #ifndef ENGINE_EDITOR
+#else
+
+                // 9. Legacy save/reload shortcuts for non-editor builds.
 
                 // F5: Save the current Scene.
                 if (wasKeyPressed(Key::F5)) {
@@ -280,11 +264,11 @@ void engine() {
                     }
                 }
 
-                #endif
+#endif
 
-                #ifdef ENGINE_EDITOR
+#ifdef ENGINE_EDITOR
 
-                // F1: Toggle pause only when no scene file operation is pending.
+                // 10. F1: Toggle pause only when no scene file operation is pending.
                 if (wasShortcutPressed(Key::F1) && editorState.getPendingAction() == PendingSceneAction::None && !isStandaloneSaveRequested()) {
                     if (editorState.getPause()) {
                         editorState.resume();
@@ -293,7 +277,7 @@ void engine() {
                     }
                 }
 
-                #endif
+#endif
 
                 prev_time = current_time;
             }
@@ -302,15 +286,9 @@ void engine() {
         // Engine systems are destroyed before SDL shuts down.
 
     } catch (const std::exception& e) {
-        logMessage(
-            logger_level::Error,
-            std::string("Engine error: ") + e.what()
-        );
+        logMessage(logger_level::Error, std::string("Engine error: ") + e.what());
     } catch (...) {
-        logMessage(
-            logger_level::Error,
-            "An unknown error occurred in the engine"
-        );
+        logMessage(logger_level::Error, "An unknown error occurred in the engine");
     }
 
     shutdownPlatform();

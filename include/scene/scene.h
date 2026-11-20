@@ -14,6 +14,7 @@ class Scene {
     void update(float dt);  // tells every entity to update, in order they were made
     void render(Renderer&); // tells every entity to draw, in the same order
     const std::vector<std::unique_ptr<Entity>>& getEntities() const;
+    bool removeEntity(std::uint64_t id);// Removes the entity with this ID. Returns false if no entity has it.
 
   private:
     std::string sceneName;                         // names of the scenes

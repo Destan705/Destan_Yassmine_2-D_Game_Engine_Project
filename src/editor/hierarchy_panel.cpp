@@ -1,8 +1,10 @@
-
 #include "hierarchy_panel.h"
 #include "editor_state.h"
 #include "scene.h"
 #include "imgui.h"
+#include "editor_actions.h"
+#include "entity.h"
+#include <cstdio>
 #include <string>
 #include <cstdint>
 
@@ -39,6 +41,13 @@ void HierarchyPanel::draw(EditorState& editorState, Scene* activeScene) {
             std::string sceneName = activeScene->getSceneName();
             ImGui::Text("%s", sceneName.c_str());
 
+            // Create: only while paused.
+            ImGui::BeginDisabled(!editorState.getPause());
+            if (ImGui::Button("Create")) {
+                createEntityAction(*activeScene, editorState);
+            }
+            ImGui::EndDisabled();
+
             uint64_t sceneGeneration = editorState.getSceneGeneration();
             const auto& entities = activeScene->getEntities();
 
@@ -53,8 +62,7 @@ void HierarchyPanel::draw(EditorState& editorState, Scene* activeScene) {
                         std::to_string(sceneGeneration) + ":" +
                         std::to_string(entityId);
 
-                    std::string entityLabel =
-                        "Entity " + std::to_string(entityId);
+                    std::string entityLabel = entity->getName();
 
                     ImGui::PushID(uniqueId.c_str());
 
@@ -66,6 +74,60 @@ void HierarchyPanel::draw(EditorState& editorState, Scene* activeScene) {
                     }
 
                     ImGui::PopID();
+                }
+            }
+
+            // Rename / Delete: only when something is selected.
+            auto selected = editorState.getSelectedId();
+            if (selected.has_value()) {
+                // Find the selected entity in this scene.
+                Entity* target = nullptr;
+                for (const auto& entity : entities) {
+                    if (entity->getId() == selected.value()) {
+                        target = entity.get();
+                        break;
+                    }
+                }
+
+                if (target != nullptr) {
+                    // Refill the box when the selection changes.
+                    if (renameTargetId != selected) {
+                        std::snprintf(renameBuffer, sizeof(renameBuffer), "%s",
+                                      target->getName().c_str());
+                        renameTargetId = selected;
+                    }
+
+                    ImGui::Separator();
+                    ImGui::BeginDisabled(!editorState.getPause());
+
+                    ImGui::InputText("Name", renameBuffer, sizeof(renameBuffer));
+                    if (ImGui::Button("Rename")) {
+                        renameEntityAction(*target, renameBuffer, editorState);
+                    }
+
+                    ImGui::SameLine();
+                    if (ImGui::Button("Delete")) {
+                        ImGui::OpenPopup("Confirm delete");
+                    }
+
+                    ImGui::EndDisabled();
+
+                    // "Are you sure?" window. Only requests the delete;
+                    // the engine removes the entity at the end of the frame.
+                    if (ImGui::BeginPopupModal("Confirm delete", nullptr,
+                                               ImGuiWindowFlags_AlwaysAutoResize)) {
+                        ImGui::Text("Delete \"%s\"?", target->getName().c_str());
+
+                        if (ImGui::Button("Delete")) {
+                            editorState.requestDelete(target->getId());
+                            ImGui::CloseCurrentPopup();
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Cancel")) {
+                            ImGui::CloseCurrentPopup(); // nothing happens
+                        }
+                        ImGui::EndPopup();
+                    }
                 }
             }
 

@@ -334,8 +334,12 @@ TEST_F(SceneSerializerTest, SaveLoadSavePreservesMeaningfulValues) {
     const auto second = nlohmann::json::parse(ReadFile(secondSave));
     EXPECT_EQ(first, second);
 
-    // And the saved data matches the original file's meaning.
-    EXPECT_EQ(first, nlohmann::json::parse(kValidScene));
+    nlohmann::json expected = nlohmann::json::parse(kValidScene);
+for (std::size_t i = 0; i < expected["entities"].size(); ++i) {
+    // Older files without names load with the fallback "Entity <id>" (IDs start at 1).
+    expected["entities"][i]["name"] = "Entity " + std::to_string(i + 1);
+}
+EXPECT_EQ(first, expected);
 }
 
 TEST_F(SceneSerializerTest, SavedFileContainsNoRuntimeState) {

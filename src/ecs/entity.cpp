@@ -20,3 +20,13 @@ void Entity::render(Renderer& renderer) {
         component->render(renderer);
     }
 }
+
+// Returns the entity's display name.
+const std::string& Entity::getName() const {
+    return entityName;
+}
+
+// Sets the entity's display name.
+void Entity::setName(const std::string& name) {
+    entityName = name;
+}

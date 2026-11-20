@@ -114,9 +114,26 @@ std::unique_ptr<Scene> SceneSerializer::load(std::filesystem::path filePath,
         if (!entityData.is_object()) {
             throw std::runtime_error(where + ": must be an object");
         }
-        checkKnownKeys(entityData, {"transform", "sprite", "animation", "collider"}, where);
+        checkKnownKeys(entityData, {"transform", "sprite", "animation", "collider","name"}, where);
 
         Entity& entity = scene->createEntity();
+
+        if(entityData.contains("name")){
+            if(!entityData.at("name").is_string()){
+
+            throw std::runtime_error(where + ": 'name' not an string");
+
+            }
+            std::string name = entityData.at("name").get<std::string>();
+
+            entity.setName(name);
+        }else{
+
+            entity.setName("Entity " + std::to_string(entity.getId()));
+
+        }
+
+        
 
         // Transform (required)
         if (!entityData.contains("transform") || !entityData.at("transform").is_object()) {
@@ -280,6 +297,8 @@ void SceneSerializer::save(const Scene& scene, std::filesystem::path filePath,
             throw std::runtime_error("Entity is missing Sprite component");
         }
         entityData["sprite"]["texture"] = assetManager.getPath(sprite->getTexture());
+
+        entityData["name"] = entity->getName();
 
         // Collider (optional). Preserve its local bounds and enabled state.
         ColliderComponent* collider = entity->getComponent<ColliderComponent>();
