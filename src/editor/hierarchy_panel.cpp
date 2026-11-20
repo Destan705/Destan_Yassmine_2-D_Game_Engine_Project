@@ -91,11 +91,13 @@ void HierarchyPanel::draw(EditorState& editorState, Scene* activeScene) {
 
                 if (target != nullptr) {
                     // Refill the box when the selection changes.
-                    if (renameTargetId != selected) {
+                    if (renameTargetId != selected || editorState.getSceneGeneration() != lastSceneGeneration) {
                         std::snprintf(renameBuffer, sizeof(renameBuffer), "%s",
                                       target->getName().c_str());
                         renameTargetId = selected;
+                        lastSceneGeneration = editorState.getSceneGeneration();
                     }
+                    
 
                     ImGui::Separator();
                     ImGui::BeginDisabled(!editorState.getPause());
@@ -129,6 +131,8 @@ void HierarchyPanel::draw(EditorState& editorState, Scene* activeScene) {
                         ImGui::EndPopup();
                     }
                 }
+            } else {
+                renameTargetId.reset();
             }
 
             // Clear selection when clicking empty panel space.

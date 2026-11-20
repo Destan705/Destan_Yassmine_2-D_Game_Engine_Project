@@ -66,7 +66,7 @@ SceneRequestResult requestOpen(SceneManager& sceneManager, SceneSerializer& scen
 
 SceneRequestResult requestClose(EditorState& editorState);
 
-SceneRequestResult executePendingAction(SceneManager& sceneManager, SceneSerializer& sceneSerializer, const AssetManager& assetManager, EditorState& editorState, const std::filesystem::path& assetRoot);
+SceneRequestResult executePendingAction(SceneManager& sceneManager, SceneSerializer& sceneSerializer, AssetManager& assetManager, EditorState& editorState, const std::filesystem::path& assetRoot);
 
 SceneRequestResult resolveUnsavedChanges(SceneManager& sceneManager, SceneSerializer& sceneSerializer, AssetManager& assetManager, EditorState& editorState, const std::filesystem::path& assetRoot, UnsavedChangesChoice choice);
 

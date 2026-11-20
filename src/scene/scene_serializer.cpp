@@ -149,31 +149,36 @@ std::unique_ptr<Scene> SceneSerializer::load(std::filesystem::path filePath,
         transform.width = readNumber(transformData, "width", context);
         transform.height = readNumber(transformData, "height", context);
 
-        // Sprite (required)
-        if (!entityData.contains("sprite") || !entityData.at("sprite").is_object()) {
-            throw std::runtime_error(where + ": 'sprite' is missing or not an object");
+        // Sprite (optional)
+        if (entityData.contains("sprite")) {
+        
+            if (!entityData.at("sprite").is_object()) {
+                throw  std::runtime_error("Invalid sprite value");
+            }
+        
+            const nlohmann::json& spriteData = entityData.at("sprite");
+            checkKnownKeys(spriteData, {"texture"}, where + " sprite");
+            if (!spriteData.contains("texture") || !spriteData.at("texture").is_string()) {
+                throw std::runtime_error(where + " sprite: 'texture' is missing or not a string");
+            }
+                                
+            std::string texturePath = spriteData.at("texture").get<std::string>();
+
+            textureHandle handle;
+
+            try {
+                handle = assetManager.loadTexture(texturePath);
+            } catch (const std::exception& e) {
+                throw std::runtime_error(
+                    where + " sprite.texture '" + texturePath +
+                    "': " + e.what()
+                );
+            }
+
+            entity.addComponent<SpriteComponent>(handle);
+
+
         }
-        const nlohmann::json& spriteData = entityData.at("sprite");
-        checkKnownKeys(spriteData, {"texture"}, where + " sprite");
-        if (!spriteData.contains("texture") || !spriteData.at("texture").is_string()) {
-            throw std::runtime_error(where + " sprite: 'texture' is missing or not a string");
-        }
-
-                
-        std::string texturePath = spriteData.at("texture").get<std::string>();
-
-        textureHandle handle;
-
-        try {
-            handle = assetManager.loadTexture(texturePath);
-        } catch (const std::exception& e) {
-            throw std::runtime_error(
-                where + " sprite.texture '" + texturePath +
-                "': " + e.what()
-            );
-        }
-
-        entity.addComponent<SpriteComponent>(handle);
 
 
         // Collider (optional). Store local bounds, NOT world-space bounds.
@@ -208,6 +213,11 @@ std::unique_ptr<Scene> SceneSerializer::load(std::filesystem::path filePath,
 
         // Animation (optional)
         if (entityData.contains("animation")) {
+
+            if (entity.getComponent<SpriteComponent>() == nullptr) {
+                throw std::runtime_error("Can't create an AnimationComponent without a SpriteComponent");
+            }
+
             std::string animContext = where + " animation";
             if (!entityData.at("animation").is_object()) {
                 throw std::runtime_error(animContext + ": must be an object");
@@ -291,12 +301,13 @@ void SceneSerializer::save(const Scene& scene, std::filesystem::path filePath,
         entityData["transform"]["width"] = transform->width;
         entityData["transform"]["height"] = transform->height;
 
-        // Sprite (required)
+        // Sprite (optional)
         SpriteComponent* sprite = entity->getComponent<SpriteComponent>();
-        if (sprite == nullptr) {
-            throw std::runtime_error("Entity is missing Sprite component");
+        if (sprite != nullptr) {
+        
+            entityData["sprite"]["texture"] = assetManager.getPath(sprite->getTexture());
+
         }
-        entityData["sprite"]["texture"] = assetManager.getPath(sprite->getTexture());
 
         entityData["name"] = entity->getName();
 
@@ -314,7 +325,10 @@ void SceneSerializer::save(const Scene& scene, std::filesystem::path filePath,
 
         // Animation (optional)
         AnimationComponent* animation = entity->getComponent<AnimationComponent>();
-        if (animation != nullptr) {
+        if (animation != nullptr ) {
+            if (entity->getComponent<SpriteComponent>() == nullptr) {
+                throw std::runtime_error("Can't create an AnimationComponent without a SpriteComponent");
+            }
             nlohmann::json animData;
             animData["frameDuration"] = animation->getDuration();
             animData["loop"] = animation->getRepeat();
