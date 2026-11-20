@@ -9,6 +9,8 @@
 #include <stdexcept>
 #include <cstdio>
 #include <exception>
+#include <cmath>
+
 
 // Draws the Inspector window for the selected entity.
 // Call once per frame between beginFrame() and render().
@@ -47,6 +49,17 @@ void InspectorPanel::draw(EditorState& editorState, Scene& scene, AssetManager& 
                 SpriteComponent* spriteComponent = selected->getComponent<SpriteComponent>();
                 AnimationComponent* animationComponent = selected->getComponent<AnimationComponent>();
 
+
+                enum class ComponentRemoval {
+                    None,
+                    Sprite,
+                    Collider,
+                    Animation
+                };
+
+                ComponentRemoval removalRequested = ComponentRemoval::None;
+
+
                 bool pausedNow = editorState.getPause();
                 bool justPaused = pausedNow && !lastPaused;
 
@@ -72,6 +85,7 @@ void InspectorPanel::draw(EditorState& editorState, Scene& scene, AssetManager& 
                     }
 
                     spriteEditFeedback.clear();
+                    colliderAddFeedback.clear();
 
                     if (spriteComponent != nullptr) {
                         try {
@@ -170,8 +184,56 @@ void InspectorPanel::draw(EditorState& editorState, Scene& scene, AssetManager& 
                         }
                     }
 
+                    ImGui::BeginDisabled(!editorState.getPause());
+
+                    if (ImGui::Button("Remove Collider")) {
+                        removalRequested = ComponentRemoval::Collider;
+                    }
+
+                    ImGui::EndDisabled();
+
                 } else {
-                    ImGui::Text("No Collider Component");
+                    ImGui::TextDisabled("No Collider Component");
+
+                    ImGui::BeginDisabled(!editorState.getPause());
+
+                    if (ImGui::Button("Add Collider")) {
+                        // Use Transform dimensions when valid.
+                        // Otherwise, use 32x32.
+                        float width = transformComponent != nullptr &&  std::isfinite(transformComponent->width) && transformComponent->width > 0.0f
+                                ? transformComponent->width
+                                : 32.0f;
+
+                        float height = transformComponent != nullptr && std::isfinite(transformComponent->height) && transformComponent->height > 0.0f
+                                ? transformComponent->height
+                                : 32.0f;
+
+                        try {
+                            selected->addComponent<ColliderComponent>(
+                                0.0f, 0.0f, width, height, true
+                            );
+
+                            // Prepare the Inspector fields for the next frame.
+                            editColliderOffsetX = 0.0f;
+                            editColliderOffsetY = 0.0f;
+                            editColliderWidth = width;
+                            editColliderHeight = height;
+                            editColliderEnabled = true;
+
+                            editorState.markDirty();
+                            colliderAddFeedback.clear();
+
+                        } catch (const std::exception& e) {
+                            colliderAddFeedback =
+                                std::string("Could not add Collider: ") + e.what();
+                        }
+                    }
+
+                    ImGui::EndDisabled();
+
+                    if (!colliderAddFeedback.empty()) {
+                        ImGui::TextWrapped("%s", colliderAddFeedback.c_str());
+                    }
                 }
 
                 // -------------------- Animation --------------------
@@ -193,6 +255,16 @@ void InspectorPanel::draw(EditorState& editorState, Scene& scene, AssetManager& 
                         "Repeat: %s",
                         animationComponent->getRepeat() ? "Yes" : "No"
                     );
+
+
+                    ImGui::BeginDisabled(!editorState.getPause());
+
+                    if (ImGui::Button("Remove Animation")) {
+                        removalRequested = ComponentRemoval::Animation;
+                    }
+
+                    ImGui::EndDisabled();
+
                 }
 
                 // -------------------- Sprite --------------------
@@ -249,9 +321,85 @@ void InspectorPanel::draw(EditorState& editorState, Scene& scene, AssetManager& 
                         ImGui::TextUnformatted(spriteEditFeedback.c_str());
                     }
 
+
+                    ImGui::BeginDisabled(!editorState.getPause());
+
+                    if (ImGui::Button("Remove Sprite")) {
+                        if (animationComponent != nullptr) {
+                            spriteEditFeedback = "Remove Animation before removing Sprite.";
+                        } else {
+                            removalRequested = ComponentRemoval::Sprite;
+                        }
+                    }
+
+                    ImGui::EndDisabled();
+
+         
                 } else {
-                    ImGui::Text("No Sprite Component");
+                    ImGui::TextDisabled("No Sprite Component");
+
+                    ImGui::BeginDisabled(!editorState.getPause());
+
+                    ImGui::InputTextWithHint("Texture Path##AddSprite", "test.bmp", editSpritePath, sizeof(editSpritePath));
+
+                    if (ImGui::Button("Add Sprite")) {
+                        try {
+                            // Load an existing texture or retrieve its cached handle
+                            textureHandle handle = assetManager.loadTexture(std::string(editSpritePath));
+
+                            // Attach the component to the selected entity
+                            selected->addComponent<SpriteComponent>(handle);
+
+                            editorState.markDirty();
+                            spriteEditFeedback = "Sprite added successfully.";
+
+                        } catch (const std::exception& e) {
+                            spriteEditFeedback =
+                                std::string("Could not add Sprite: ") + e.what();
+                        }
+                    }
+
+                    ImGui::EndDisabled();
+
+                    if (!spriteEditFeedback.empty()) {
+                        ImGui::TextWrapped("%s", spriteEditFeedback.c_str());
+                    }
                 }
+
+
+
+                if (editorState.getPause()) {
+                    bool removed = false;
+
+                    switch (removalRequested) {
+                        case ComponentRemoval::Collider:
+                            removed = selected->removeComponent<ColliderComponent>();
+                            break;
+
+                        case ComponentRemoval::Sprite:
+                            if (selected->getComponent<AnimationComponent>() == nullptr) {
+                                removed = selected->removeComponent<SpriteComponent>();
+                            }
+                            break;
+
+                        case ComponentRemoval::Animation:
+                            // Restore normal full-texture rendering 
+                            if (spriteComponent != nullptr) {
+                                spriteComponent->sourceSet(std::nullopt);
+                            }
+
+                            removed = selected->removeComponent<AnimationComponent>();
+                            break;
+
+                        case ComponentRemoval::None:
+                            break;
+                    }
+
+                    if (removed) {
+                        editorState.markDirty();
+                    }
+                }
+
             }
         }
     }

@@ -33,6 +33,8 @@ class InspectorPanel{
 
         std::string spriteEditFeedback = "";
 
+        std::string colliderAddFeedback = "";
+
         std::optional<std::uint64_t> lastSelectedId;
 
         std::uint64_t lastSceneGeneration = 0;

@@ -66,6 +66,19 @@ class Entity {
         return attachedComponent;
     }
 
+
+    template <typename T>
+    bool removeComponent() {
+        static_assert(std::is_base_of_v<Component, T>, "T must derive from Component");
+        for (auto it = components.begin(); it != components.end(); ++it) {
+            if (typeid(**it) == typeid(T)) {
+                components.erase(it);
+                return true;
+            }
+        }
+        return false;
+    }
+
   private:
     std::uint64_t id;
 
