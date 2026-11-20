@@ -1,17 +1,23 @@
 #pragma once
-#include "renderer.h"
-#include "scene.h"
-#include "editor_state.h"
 
-// Draws an outline around every enabled collider (editor build only).
-// Call after the scene is drawn and before ImGui, so outlines sit on top of
-// sprites but under the editor panels.
-//
-// Skipped: entities with no Transform or no Collider, disabled colliders,
-// and boxes with non-finite values.
-//
-// Colours:
-//   green  {0, 255, 0, 255}   normal collider
-//   red    {255, 0, 0, 255}   overlapping another collider this frame
-//   yellow {255, 255, 0, 255} selected entity (wins over red)
+#include "editor_state.h"
+#include "rendertypes.h"
+#include "scene.h"
+#include <cstdint>
+#include <vector>
+
+class Renderer;
+
+struct ColliderOutline {
+    std::uint64_t entityId;
+    Bounds bounds;
+    Color color;
+};
+
+// Returns current-scene outlines with no renderer side effects and no retained pointers.
+// Normal = green, overlapping = red, selected = yellow (highest priority).
+std::vector<ColliderOutline> collectColliderOutlines(Scene& scene,
+                                                      const EditorState& editorState);
+
+// Draws after sprites and before ImGui, using the engine renderer's coordinates.
 void drawColliderOverlay(Renderer& renderer, Scene& scene, const EditorState& editorState);

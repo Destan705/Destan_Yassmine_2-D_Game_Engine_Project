@@ -1,4 +1,5 @@
 #include "input.h"
+#include "input_capture_state.h"
 #include <SDL3/SDL.h>
 #include <array>
 
@@ -9,10 +10,7 @@
 
 #endif
 SDL_Event event;
-const bool* keystate;
-std::array<bool, SDL_SCANCODE_COUNT> pressedThisFrame{};
-std::array<bool, SDL_SCANCODE_COUNT> releasedThisFrame{};
-std::array<bool, SDL_SCANCODE_COUNT> shortcutPressedThisFrame{};
+InputCaptureState gameplayInput;
 
 SDL_Scancode toSDLScancode(Key key) {
     switch (key) {
@@ -192,71 +190,59 @@ SDL_Scancode toSDLScancode(Key key) {
     return SDL_SCANCODE_UNKNOWN;
 }
 
-void initializeInput() { // call after SDL been init in platform.cpp
-    keystate = SDL_GetKeyboardState(nullptr);
+void initializeInput() {
+    gameplayInput.reset();
 }
-// is the user typing in the editor right now
+
+// The gameplay gate is distinct from editor shortcut routing.
 bool uiWantsKeyboard() {
 #ifdef ENGINE_EDITOR
-    if(ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureKeyboard ){
-        return true;
-    }
-    return false;
+    return ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureKeyboard;
 #else
     return false;
 #endif
 }
 
 bool processPlatformEvents() {
-    pressedThisFrame.fill(false);
-    releasedThisFrame.fill(false);
-    shortcutPressedThisFrame.fill(false);
+    gameplayInput.beginFrame(uiWantsKeyboard());
     bool closeRequested = false;
 
     while (SDL_PollEvent(&event)) {
-
-        #ifdef ENGINE_EDITOR
-          if (ImGui::GetCurrentContext() != nullptr) {
-           ImGui_ImplSDL3_ProcessEvent(&event);
+#ifdef ENGINE_EDITOR
+        if (ImGui::GetCurrentContext() != nullptr) {
+            ImGui_ImplSDL3_ProcessEvent(&event);
         }
-        #endif
+#endif
+        gameplayInput.setCaptured(uiWantsKeyboard());
 
-        if(event.type == SDL_EVENT_KEY_DOWN){
-            if (!event.key.repeat) {
-            shortcutPressedThisFrame[event.key.scancode] =true;
-            }
-        }
-
-        if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
+        // Always honor OS window close, even when typing into the UI.
+        if (event.type == SDL_EVENT_QUIT ||
+            event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
             closeRequested = true;
-            continue;
-        } else if (event.type == SDL_EVENT_KEY_DOWN && !uiWantsKeyboard()) {
-            if (!event.key.repeat) {
-                pressedThisFrame[event.key.scancode] = true;
-            }
-        } else if (event.type == SDL_EVENT_KEY_UP && !uiWantsKeyboard()) {
-            releasedThisFrame[event.key.scancode] = true;
+        } else if (event.type == SDL_EVENT_WINDOW_FOCUS_LOST) {
+            gameplayInput.resetGameplay();
+        } else if (event.type == SDL_EVENT_KEY_DOWN) {
+            gameplayInput.keyDown(event.key.scancode, event.key.repeat);
+        } else if (event.type == SDL_EVENT_KEY_UP) {
+            gameplayInput.keyUp(event.key.scancode);
         }
     }
+    gameplayInput.setCaptured(uiWantsKeyboard());
     return !closeRequested;
 }
 
 bool isKeyHeld(Key key) {
-    if( uiWantsKeyboard()){
-        return false;
-    }
-    return keystate[toSDLScancode(key)] == true;
+    return gameplayInput.isHeld(toSDLScancode(key));
 }
 
 bool wasKeyPressed(Key key) {
-    return pressedThisFrame[toSDLScancode(key)];
+    return gameplayInput.wasPressed(toSDLScancode(key));
 }
 
 bool wasKeyReleased(Key key) {
-    return releasedThisFrame[toSDLScancode(key)];
+    return gameplayInput.wasReleased(toSDLScancode(key));
 }
 
-bool wasShortcutPressed(Key key){
-    return shortcutPressedThisFrame[toSDLScancode(key)];
+bool wasShortcutPressed(Key key) {
+    return gameplayInput.shortcutPressed(toSDLScancode(key));
 }
-

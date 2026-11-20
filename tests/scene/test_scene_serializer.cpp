@@ -373,13 +373,19 @@ TEST_F(SceneSerializerTest, FailedSaveKeepsPreviousFile) {
     EXPECT_EQ(ReadFile(destination), "previous good content");
 }
 
-TEST_F(SceneSerializerTest, SavingUnsupportedEntityFailsAndKeepsPreviousFile) {
-    Scene scene("Incomplete");
-    scene.createEntity().addComponent<TransformComponent>(); // no Sprite
-    const auto destination = WriteFile("keep.json", "previous good content");
+TEST_F(SceneSerializerTest, SavingEntityWithoutSpriteRoundTrips) {
+    Scene scene("Sprite optional");
+    auto& entity = scene.createEntity();
+    entity.addComponent<TransformComponent>();
+    entity.setName("Empty visual");
+    const auto destination = tempDir / "sprite-optional.json";
 
-    EXPECT_THROW(serializer.save(scene, destination, *assets), std::runtime_error);
-    EXPECT_EQ(ReadFile(destination), "previous good content");
+    ASSERT_NO_THROW(serializer.save(scene, destination, *assets));
+    auto loaded = serializer.load(destination, *assets);
+    ASSERT_EQ(loaded->getEntities().size(), 1u);
+    EXPECT_EQ(loaded->getEntities()[0]->getName(), "Empty visual");
+    EXPECT_NE(loaded->getEntities()[0]->getComponent<TransformComponent>(), nullptr);
+    EXPECT_EQ(loaded->getEntities()[0]->getComponent<SpriteComponent>(), nullptr);
 }
 
 // ============================================================
