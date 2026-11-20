@@ -28,16 +28,23 @@ class SceneFilePanel{
 
         char savePathBuffer[1024] = {};
         bool standaloneSaveRequested = false;
+        bool openDialogRequested = false;
 
         std::uint64_t lastSceneGeneration = 0;
 
+        void drawOpenPathPopup(SceneFileCommand& command);
         void drawConfirmationPopup(const EditorState& editorState, SceneFileCommand& command);
 
         void drawSavePathPopup(const EditorState& editorState, SceneFileCommand& command);
 
 
     public:
+        // Called from Editor toolbar; popups are drawn by draw() each frame.
+        void requestOpenDialog();
+        void requestSaveAsDialog();
         SceneFileCommand draw(const EditorState& editorState);
         void setFeedbackMessage(const std::string& message);
+        const std::string& getFeedbackMessage() const;
+        bool isModalInteractionActive() const;
         bool isStandaloneSaveRequested() const;
 };

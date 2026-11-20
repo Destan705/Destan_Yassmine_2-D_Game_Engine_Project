@@ -102,3 +102,9 @@ bool wasKeyPressed(Key key);
 bool wasKeyReleased(Key key);
 
 bool wasShortcutPressed(Key key);
+
+#ifdef ENGINE_EDITOR
+// Called once per editor frame after Scene viewport focus is calculated.
+// Gameplay shortcuts remain available independently.
+void setGameplayViewportActive(bool active);
+#endif

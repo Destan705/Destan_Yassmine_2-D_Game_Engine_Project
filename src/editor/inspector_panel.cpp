@@ -1,8 +1,10 @@
 
 #include "inspector_panel.h"
+#include "editor_layout.h"
 #include "transform_component.h"
 #include "imgui.h"
 #include "editor_actions.h"
+#include "editor_theme.h"
 #include "collider_component.h"
 #include "animation_component.h"
 #include "sprite_component.h"
@@ -10,7 +12,24 @@
 #include <cstdio>
 #include <exception>
 #include <cmath>
+#include <cstddef>
 
+
+
+// PHASE4_WIDGET_POLISH_V1: consistent full-width property fields.
+namespace {
+void propertyFloat(const char* caption, const char* id, float* value) {
+    ImGui::TextDisabled("%s", caption);
+    ImGui::SetNextItemWidth(-FLT_MIN);
+    ImGui::InputFloat(id, value);
+}
+
+void propertyText(const char* caption, const char* id, char* value, std::size_t capacity) {
+    ImGui::TextDisabled("%s", caption);
+    ImGui::SetNextItemWidth(-FLT_MIN);
+    ImGui::InputText(id, value, capacity);
+}
+}
 
 // Draws the Inspector window for the selected entity.
 // Call once per frame between beginFrame() and render().
@@ -19,11 +38,11 @@
 // assetManager: retrieves current texture paths and loads replacement textures.
 
 void InspectorPanel::draw(EditorState& editorState, Scene& scene, AssetManager& assetManager) {
-    ImGui::SetNextWindowSize(ImVec2(300, 400), ImGuiCond_FirstUseEver);
 
-    if (ImGui::Begin("Inspector")) {
+    if (ImGui::Begin("Inspector", nullptr, EditorLayout::panelFlags)) {
         if (editorState.getSelectedId() == std::nullopt) {
-            ImGui::Text("Nothing selected");
+            ImGui::Spacing();
+            ImGui::TextDisabled("Select an entity to edit its properties.");
             lastSelectedId.reset();
 
         } else {
@@ -38,12 +57,15 @@ void InspectorPanel::draw(EditorState& editorState, Scene& scene, AssetManager& 
             }
 
             if (selected == nullptr) {
-                ImGui::Text("Nothing selected");
+                ImGui::Spacing();
+            ImGui::TextDisabled("Select an entity to edit its properties.");
                 lastSelectedId.reset();
 
             } else {
-                ImGui::Text("Entity %llu", static_cast<unsigned long long>(id));
+                ImGui::TextColored(EditorTheme::accentText(), "Entity %llu",
+                                    static_cast<unsigned long long>(id));
                 ImGui::Text("Name: %s", selected->getName().c_str());
+                ImGui::Separator();
 
                 TransformComponent* transformComponent = selected->getComponent<TransformComponent>();
                 ColliderComponent* colliderComponent = selected->getComponent<ColliderComponent>();
@@ -126,10 +148,10 @@ void InspectorPanel::draw(EditorState& editorState, Scene& scene, AssetManager& 
                 if (transformComponent != nullptr) {
                     ImGui::BeginDisabled(!editorState.getPause());
 
-                    ImGui::InputFloat("X", &editX);
-                    ImGui::InputFloat("Y", &editY);
-                    ImGui::InputFloat("Width", &editWidth);
-                    ImGui::InputFloat("Height", &editHeight);
+                    propertyFloat("X", "##TransformX", &editX);
+                    propertyFloat("Y", "##TransformY", &editY);
+                    propertyFloat("Width", "##TransformWidth", &editWidth);
+                    propertyFloat("Height", "##TransformHeight", &editHeight);
 
                     bool frame = ImGui::Button("Apply##Transform");
 
@@ -160,10 +182,10 @@ void InspectorPanel::draw(EditorState& editorState, Scene& scene, AssetManager& 
                 if (colliderComponent != nullptr) {
                     ImGui::BeginDisabled(!editorState.getPause());
 
-                    ImGui::InputFloat("Offset X", &editColliderOffsetX);
-                    ImGui::InputFloat("Offset Y", &editColliderOffsetY);
-                    ImGui::InputFloat("Width##Collider", &editColliderWidth);
-                    ImGui::InputFloat("Height##Collider", &editColliderHeight);
+                    propertyFloat("Offset X", "##ColliderOffsetX", &editColliderOffsetX);
+                    propertyFloat("Offset Y", "##ColliderOffsetY", &editColliderOffsetY);
+                    propertyFloat("Width", "##ColliderWidth", &editColliderWidth);
+                    propertyFloat("Height", "##ColliderHeight", &editColliderHeight);
                     ImGui::Checkbox("Enabled", &editColliderEnabled);
 
                     bool frame = ImGui::Button("Apply##Collider");
@@ -288,7 +310,7 @@ void InspectorPanel::draw(EditorState& editorState, Scene& scene, AssetManager& 
                     // Editable texture path.
                     ImGui::BeginDisabled(!editorState.getPause());
 
-                    ImGui::InputText("Path", editSpritePath, sizeof(editSpritePath));
+                    propertyText("Texture path", "##EditSpritePath", editSpritePath, sizeof(editSpritePath));
 
                     bool frame = ImGui::Button("Apply##Sprite");
 
@@ -341,7 +363,9 @@ void InspectorPanel::draw(EditorState& editorState, Scene& scene, AssetManager& 
 
                     ImGui::BeginDisabled(!editorState.getPause());
 
-                    ImGui::InputTextWithHint("Texture Path##AddSprite", "test.bmp", editSpritePath, sizeof(editSpritePath));
+                    ImGui::TextDisabled("Texture path");
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::InputTextWithHint("##AddSpritePath", "test.bmp", editSpritePath, sizeof(editSpritePath));
 
                     if (ImGui::Button("Add Sprite")) {
                         try {

@@ -38,7 +38,14 @@ bool initializePlatform() {
     logMessage(logger_level::Info, "SDL3 initialized successfully!");
 
     // Create a window
-    window = SDL_CreateWindow("My SDL3 Window", 800, 600, SDL_WINDOW_RESIZABLE);
+    SDL_WindowFlags windowFlags = SDL_WINDOW_RESIZABLE;
+#ifdef ENGINE_EDITOR
+    // Request native-density framebuffer on macOS/retina and Wayland.
+    // Non-editor window flags remain unchanged.
+    windowFlags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
+    windowFlags |= SDL_WINDOW_MAXIMIZED;
+#endif
+    window = SDL_CreateWindow("My SDL3 Window", 800, 600, windowFlags);
 
     if (window == nullptr) {
         logMessage(logger_level::Error,
@@ -147,25 +154,37 @@ void renderPlatform(Scene& scene) {
 }
 #ifdef ENGINE_EDITOR
 void renderPlatform(Scene& scene, const EditorState& editorState, StatsSnapshot stats) {
-
-    if (renderer == nullptr) {
-        logMessage(logger_level::Warning, "Renderer is not initialized!");
+    if (renderer == nullptr || editor == nullptr) {
         return;
     }
+    SDL_Renderer* nativeRenderer = renderer->getSDLRenderer();
+    SDL_Texture* sceneTarget = editor->getSceneTexture();
 
-    renderer->ClearScreen(Color{255, 255, 255, 255});
-    scene.render(*renderer);
-    stats.spriteDrawCount = renderer->getSpriteDrawCount();
+    // Draw the Scene AND the collider overlay to the offscreen target.
+    if (sceneTarget != nullptr) {
+        SDL_Texture* previousTarget = SDL_GetRenderTarget(nativeRenderer);
+        if (SDL_SetRenderTarget(nativeRenderer, sceneTarget)) {
+            renderer->ClearScreen(Color{37, 42, 52, 255});
+            scene.render(*renderer);
+            stats.spriteDrawCount = renderer->getSpriteDrawCount();
+            drawColliderOverlay(*renderer, scene, editorState);
+            SDL_SetRenderTarget(nativeRenderer, previousTarget);
+        } else {
+            // The ImGui frame can still draw and report the error in its panel.
+            logMessage(logger_level::Error,
+                       std::string("Failed to select Scene render target: ") + SDL_GetError());
+            stats.spriteDrawCount = 0;
+        }
+    } else {
+        stats.spriteDrawCount = 0;
+    }
 
-    
-    drawColliderOverlay(*renderer,scene, editorState);
-    if(editor!=nullptr){
+    // The SDL window now receives ONLY the editor, not raw Scene sprites.
+    SDL_SetRenderTarget(nativeRenderer, nullptr);
+    renderer->ClearScreen(Color{24, 27, 34, 255});
     editor->drawStatsPanel(stats);
     editor->render();
-    }
-    
-
-    renderer->Present();
+    renderer->Present(); // exactly one present per frame
 }
 #endif
   

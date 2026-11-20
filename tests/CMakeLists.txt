@@ -62,6 +62,9 @@ gtest_discover_tests(engine_tests
 # testable state/geometry/commands without creating a visible ImGui window.
 if(ENGINE_EDITOR)
     add_executable(editor_tests
+        editor/test_scene_viewport_geometry.cpp
+        editor/test_editor_toolbar_policy.cpp
+        editor/test_editor_dpi_scale.cpp
         editor/test_editor_state.cpp
         editor/test_editor_input.cpp
         editor/test_editor_input_integration.cpp

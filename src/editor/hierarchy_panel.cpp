@@ -1,8 +1,11 @@
+// PHASE4_WIDGET_POLISH_V1
 #include "hierarchy_panel.h"
+#include "editor_layout.h"
 #include "editor_state.h"
 #include "scene.h"
 #include "imgui.h"
 #include "editor_actions.h"
+#include "editor_theme.h"
 #include "entity.h"
 #include <cstdio>
 #include <string>
@@ -33,21 +36,27 @@ void HierarchyPanel::draw(EditorState& editorState, Scene* activeScene) {
     }
 
     // Draw the Hierarchy panel.
-    if (ImGui::Begin("Entities")) {
+    if (ImGui::Begin("Entities", nullptr, EditorLayout::panelFlags)) {
 
         if (activeScene == nullptr) {
             ImGui::TextDisabled("No active scene");
         } else {
             std::string sceneName = activeScene->getSceneName();
-            ImGui::Text("%s", sceneName.c_str());
+            ImGui::TextDisabled("ACTIVE SCENE");
+            ImGui::TextColored(EditorTheme::accentText(), "%s", sceneName.c_str());
+            ImGui::Spacing();
 
             // Create: only while paused.
             ImGui::BeginDisabled(!editorState.getPause());
+            EditorTheme::pushPrimaryButton();
             if (ImGui::Button("Create")) {
                 createEntityAction(*activeScene, editorState);
             }
+            EditorTheme::popButton();
             ImGui::EndDisabled();
 
+            ImGui::Separator();
+            ImGui::Spacing();
             uint64_t sceneGeneration = editorState.getSceneGeneration();
             const auto& entities = activeScene->getEntities();
 
@@ -102,7 +111,9 @@ void HierarchyPanel::draw(EditorState& editorState, Scene* activeScene) {
                     ImGui::Separator();
                     ImGui::BeginDisabled(!editorState.getPause());
 
-                    ImGui::InputText("Name", renameBuffer, sizeof(renameBuffer));
+                    ImGui::TextDisabled("Entity name");
+                    ImGui::SetNextItemWidth(-FLT_MIN);
+                    ImGui::InputText("##RenameEntity", renameBuffer, sizeof(renameBuffer));
                     if (ImGui::Button("Rename")) {
                         renameEntityAction(*target, renameBuffer, editorState);
                     }

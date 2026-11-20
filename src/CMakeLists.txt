@@ -28,6 +28,8 @@ if(ENGINE_EDITOR)
     target_link_libraries(game_engine PRIVATE imgui_lib)
     target_sources(game_engine PRIVATE
         editor/editor.cpp
+        editor/editor_theme.cpp
+        editor/editor_layout.cpp
         editor/editor_state.cpp
         editor/editor_actions.cpp
         editor/inspector_panel.cpp

@@ -10,7 +10,17 @@
 
 #endif
 SDL_Event event;
+bool uiWantsKeyboard();
 InputCaptureState gameplayInput;
+
+// Defaults to enabled for non-editor builds; editor initialization disables it
+// until the Scene viewport is selected.
+bool gameplayViewportActive = true;
+
+void setGameplayViewportActive(bool active) {
+    gameplayViewportActive = active;
+    gameplayInput.setCaptured(uiWantsKeyboard() || !gameplayViewportActive);
+}
 
 SDL_Scancode toSDLScancode(Key key) {
     switch (key) {
@@ -192,6 +202,11 @@ SDL_Scancode toSDLScancode(Key key) {
 
 void initializeInput() {
     gameplayInput.reset();
+#ifdef ENGINE_EDITOR
+    gameplayViewportActive = false;
+#else
+    gameplayViewportActive = true;
+#endif
 }
 
 // The gameplay gate is distinct from editor shortcut routing.
@@ -204,7 +219,7 @@ bool uiWantsKeyboard() {
 }
 
 bool processPlatformEvents() {
-    gameplayInput.beginFrame(uiWantsKeyboard());
+    gameplayInput.beginFrame(uiWantsKeyboard() || !gameplayViewportActive);
     bool closeRequested = false;
 
     while (SDL_PollEvent(&event)) {
@@ -213,7 +228,7 @@ bool processPlatformEvents() {
             ImGui_ImplSDL3_ProcessEvent(&event);
         }
 #endif
-        gameplayInput.setCaptured(uiWantsKeyboard());
+        gameplayInput.setCaptured(uiWantsKeyboard() || !gameplayViewportActive);
 
         // Always honor OS window close, even when typing into the UI.
         if (event.type == SDL_EVENT_QUIT ||
@@ -227,7 +242,7 @@ bool processPlatformEvents() {
             gameplayInput.keyUp(event.key.scancode);
         }
     }
-    gameplayInput.setCaptured(uiWantsKeyboard());
+    gameplayInput.setCaptured(uiWantsKeyboard() || !gameplayViewportActive);
     return !closeRequested;
 }
 

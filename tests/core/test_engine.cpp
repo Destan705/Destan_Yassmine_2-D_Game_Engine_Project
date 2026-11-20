@@ -74,14 +74,26 @@ TEST_F(EngineTest, WhenWindowCloseIsRequestedEngineStopsAndCleansUp) {
 }
 
 // The engine can start again after quitting, so no leftover state breaks a restart.
+
 TEST_F(EngineTest, EngineCanRunAgainAfterQuitting) {
     for (int run = 0; run < 2; ++run) {
         SCOPED_TRACE(::testing::Message() << "Run " << run + 1);
+
         ASSERT_TRUE(SDL_Init(SDL_INIT_EVENTS)) << SDL_GetError();
+
+        // Reapply test drivers after each SDL shutdown.
+        ASSERT_TRUE(SDL_SetHintWithPriority(
+            SDL_HINT_AUDIO_DRIVER, "dummy", SDL_HINT_OVERRIDE));
+
+        ASSERT_TRUE(SDL_SetHintWithPriority(
+            SDL_HINT_RENDER_DRIVER, "software", SDL_HINT_OVERRIDE));
+
         PushQuit();
         engine();
+
         EXPECT_EQ(SDL_WasInit(0), 0u);
     }
 }
+
 
 } // namespace
