@@ -50,6 +50,9 @@ std::vector<std::string> BehaviorComponent::getBehaviorNames() const {
 }
 
 void BehaviorComponent::update(float dt) {
+    if (dt <= 0.0f) {
+    return;
+    }
     // for each entry:
     for(auto& entry: entries){
     //   1. make sure the behavior knows its entity: setOwner(getOwner())

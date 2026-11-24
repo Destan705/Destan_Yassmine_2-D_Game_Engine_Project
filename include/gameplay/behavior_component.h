@@ -23,9 +23,8 @@ public:
 
     // Names in the order they were added (used later for saving).
     std::vector<std::string> getBehaviorNames() const;
-
-    // Runs every behavior once, in the order they were added.
-    // Calls start() the first time, then update(dt).
+    // Called once per simulation frame (never while paused).
+    // Order: entities in creation order, then behaviors in the order they were added.
     void update(float dt) override;
 
 private:
