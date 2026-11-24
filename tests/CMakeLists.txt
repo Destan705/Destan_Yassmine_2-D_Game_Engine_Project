@@ -77,7 +77,10 @@ if(ENGINE_EDITOR)
         editor/test_logger_subscription.cpp
         editor/test_entity_editing.cpp
         editor/test_console_regressions.cpp
+        editor/test_engine_stats.cpp
+        editor/test_scene_file_actions.cpp
         ../src/editor/editor_state.cpp
+        ../src/editor/engine_stats.cpp
         ../src/editor/editor_actions.cpp
         ../src/editor/collider_overlay.cpp
         ../src/editor/log_buffer.cpp
