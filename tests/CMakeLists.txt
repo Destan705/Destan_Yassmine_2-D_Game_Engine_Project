@@ -22,7 +22,6 @@ add_executable(engine_tests
     ../src/platform/input.cpp
     ../src/platform/logger.cpp
     ../src/core/engine.cpp
-    ../src/core/game.cpp
     ../src/core/project_config.cpp
     ../src/ecs/component.cpp
     ../src/ecs/entity.cpp

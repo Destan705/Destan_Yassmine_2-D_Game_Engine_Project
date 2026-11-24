@@ -1,8 +1,9 @@
 #include "engine.h"
+#include "phase3_demo_game.h"
 #include <SDL3/SDL.h>
-#include <iostream>
 
 int main() {
-    engine();
+    Phase3DemoGame demoGame;
+    engine(demoGame);
     return 0;
 }

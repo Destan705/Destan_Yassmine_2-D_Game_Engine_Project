@@ -4,6 +4,7 @@ project(game_engine VERSION 0.0.0 LANGUAGES CXX)
 set(ENGINE_INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/include/core
+    ${PROJECT_SOURCE_DIR}/include/demo
     ${PROJECT_SOURCE_DIR}/include/platform
     ${PROJECT_SOURCE_DIR}/include/rendering
     ${PROJECT_SOURCE_DIR}/include/ecs

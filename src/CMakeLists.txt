@@ -1,8 +1,8 @@
 add_executable(game_engine
     main.cpp
     core/engine.cpp
-    core/game.cpp        
     core/project_config.cpp
+    demo/phase3_demo_game.cpp
     platform/input.cpp
     platform/platform.cpp
     platform/logger.cpp

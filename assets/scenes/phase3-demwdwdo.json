@@ -1,0 +1,83 @@
+{
+    "entities": [
+        {
+            "collider": {
+                "enabled": true,
+                "height": 50.0,
+                "offsetX": 0.0,
+                "offsetY": 0.0,
+                "width": 50.0
+            },
+            "name": "Player Trigger",
+            "sprite": {
+                "texture": "test.bmp"
+            },
+            "transform": {
+                "height": 50.0,
+                "width": 50.0,
+                "x": 200.0,
+                "y": 300.0
+            }
+        },
+        {
+            "animation": {
+                "frameDuration": 0.25,
+                "frames": [
+                    {
+                        "h": 32.0,
+                        "w": 32.0,
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    {
+                        "h": 32.0,
+                        "w": 32.0,
+                        "x": 32.0,
+                        "y": 0.0
+                    },
+                    {
+                        "h": 32.0,
+                        "w": 32.0,
+                        "x": 64.0,
+                        "y": 0.0
+                    },
+                    {
+                        "h": 32.0,
+                        "w": 32.0,
+                        "x": 96.0,
+                        "y": 0.0
+                    }
+                ],
+                "loop": true
+            },
+            "collider": {
+                "enabled": true,
+                "height": 32.0,
+                "offsetX": 0.0,
+                "offsetY": 0.0,
+                "width": 32.0
+            },
+            "name": "Player",
+            "sprite": {
+                "texture": "anim_sheet.bmp"
+            },
+            "transform": {
+                "height": 32.0,
+                "width": 32.0,
+                "x": 566.525390625,
+                "y": 146.7327423095703
+            }
+        },
+        {
+            "name": "Entity 6",
+            "transform": {
+                "height": 333.0,
+                "width": 330.0,
+                "x": 0.0,
+                "y": 0.0
+            }
+        }
+    ],
+    "name": "Phase 3 Demo",
+    "version": 1
+}
