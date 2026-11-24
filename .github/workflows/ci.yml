@@ -39,8 +39,11 @@ jobs:
 
       - name: Run static analysis
         run: |
-          find src -name '*.cpp' -print0 |
-          xargs -0 clang-tidy -p build --header-filter="^${GITHUB_WORKSPACE}/(src|include|tests)/"
+          if [ "${{ matrix.editor }}" = "ON" ]; then
+            find src -name '*.cpp' -print0
+          else
+            find src -name '*.cpp' -not -path 'src/editor/*' -print0
+          fi | xargs -0 clang-tidy -p build --header-filter="^${GITHUB_WORKSPACE}/(src|include|tests)/"
 
       - name: Run tests
         env:
