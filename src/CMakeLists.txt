@@ -18,6 +18,9 @@ add_executable(game_engine
     scene/scene_serializer.cpp
     assets/asset_manager.cpp
     audio/audio_service.cpp
+    gameplay/behavior_registry.cpp
+    gameplay/behavior_registry.cpp
+    gameplay/behavior_component.cpp
 )
 
 target_link_libraries(game_engine PRIVATE SDL3::SDL3 nlohmann_json::nlohmann_json)
