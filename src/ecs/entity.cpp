@@ -30,3 +30,11 @@ const std::string& Entity::getName() const {
 void Entity::setName(const std::string& name) {
     entityName = name;
 }
+
+void Entity::requestRemoval() {
+    removalRequested = true;
+}
+
+bool Entity::isRemovalRequested() const {
+    return removalRequested;
+}

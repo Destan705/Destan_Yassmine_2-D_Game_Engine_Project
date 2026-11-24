@@ -79,10 +79,17 @@ class Entity {
         return false;
     }
 
+    // Marks this entity for removal at the end of the frame.
+    void requestRemoval();
+    
+    bool isRemovalRequested() const;
+
   private:
     std::uint64_t id;
 
     std::vector<std::unique_ptr<Component>> components;
 
     std::string entityName;
+
+    bool removalRequested = false;
 };

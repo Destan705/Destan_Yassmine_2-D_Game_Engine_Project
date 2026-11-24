@@ -53,4 +53,8 @@ bool Scene::removeEntity(std::uint64_t id) {
             removeEntity(removal);
         }
         pendingRemovals.clear();
+
+        std::erase_if(entities, [](const std::unique_ptr<Entity>& entity) {
+            return entity->isRemovalRequested();
+        });
     }
