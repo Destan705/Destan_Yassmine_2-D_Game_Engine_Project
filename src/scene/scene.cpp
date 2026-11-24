@@ -42,3 +42,15 @@ bool Scene::removeEntity(std::uint64_t id) {
     }
     return false;
 }
+
+ // Asks to remove an entity at the end of the frame (safe during updates).
+    void Scene::requestRemove(std::uint64_t id){
+        pendingRemovals.push_back(id);
+    }
+    // Removes every requested entity. Call only when nothing is looping over entities.
+    void Scene::applyPendingRemovals(){
+        for(auto& removal: pendingRemovals){
+            removeEntity(removal);
+        }
+        pendingRemovals.clear();
+    }

@@ -222,6 +222,10 @@ void engine() {
                     }
                 }
 
+                // 6b. Remove entities that gameplay asked to remove this frame.     
+                // Safe here: updates and collision checks are finished.              
+                sceneManager.getActiveScene().applyPendingRemovals();  
+
 #ifdef ENGINE_EDITOR
                 // 7. Render the scene ONCE, with overlay, stats and ImGui.
                 StatsSnapshot stats;

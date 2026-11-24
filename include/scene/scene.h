@@ -15,9 +15,14 @@ class Scene {
     void render(Renderer&); // tells every entity to draw, in the same order
     const std::vector<std::unique_ptr<Entity>>& getEntities() const;
     bool removeEntity(std::uint64_t id);// Removes the entity with this ID. Returns false if no entity has it.
+    // Asks to remove an entity at the end of the frame (safe during updates).
+    void requestRemove(std::uint64_t id);
+    // Removes every requested entity. Call only when nothing is looping over entities.
+    void applyPendingRemovals();
 
   private:
     std::string sceneName;                         // names of the scenes
     std::vector<std::unique_ptr<Entity>> entities; // each scene's entity
     std::uint64_t iDcounter = 1;                   // idCounter for entity in scenes
+    std::vector<std::uint64_t> pendingRemovals;
 };
