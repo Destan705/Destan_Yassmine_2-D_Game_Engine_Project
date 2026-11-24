@@ -11,6 +11,7 @@ set(ENGINE_INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/include/events
     ${PROJECT_SOURCE_DIR}/include/assets
     ${PROJECT_SOURCE_DIR}/include/audio
+    ${PROJECT_SOURCE_DIR}/include/gameplay
 )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
