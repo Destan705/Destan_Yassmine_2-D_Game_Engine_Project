@@ -21,6 +21,9 @@ add_executable(game_engine
     gameplay/behavior_registry.cpp
     gameplay/behavior_registry.cpp
     gameplay/behavior_component.cpp
+    gameplay/behavior_registry.cpp
+    gameplay/behavior_component.cpp
+    gameplay/keyboard_move.cpp
 )
 
 target_link_libraries(game_engine PRIVATE SDL3::SDL3 nlohmann_json::nlohmann_json)
