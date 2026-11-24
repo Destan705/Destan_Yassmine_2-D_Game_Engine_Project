@@ -74,6 +74,8 @@ if(ENGINE_EDITOR)
         editor/test_log_buffer.cpp
         editor/test_console_commands.cpp
         editor/test_logger_subscription.cpp
+        editor/test_entity_editing.cpp
+        editor/test_console_regressions.cpp
         ../src/editor/editor_state.cpp
         ../src/editor/editor_actions.cpp
         ../src/editor/collider_overlay.cpp

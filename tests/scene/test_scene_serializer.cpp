@@ -421,4 +421,62 @@ TEST_F(SceneSerializerTest, FailedLoadKeepsOldSceneAndEmitsNoEvent) {
     EXPECT_EQ(manager.getActiveScene().getSceneName(), "Old Scene");
 }
 
+// PHASE4_MISSING_TESTS_SCENE_NAMES_V1
+// Additional Hierarchy/serializer checks using the existing SceneSerializerTest fixture.
+TEST_F(SceneSerializerTest, DuplicateEntityNamesSurviveRoundTripWithoutRuntimeIds) {
+    Scene scene("Hierarchy names");
+
+    // Deleting an early Entity makes runtime IDs differ from file-order IDs.
+    auto& discarded = scene.createEntity();
+    const auto discardedId = discarded.getId();
+    ASSERT_TRUE(scene.removeEntity(discardedId));
+
+    auto& first = scene.createEntity();
+    first.addComponent<TransformComponent>();
+    first.setName("Coin");
+    auto& second = scene.createEntity();
+    second.addComponent<TransformComponent>();
+    second.setName("Coin");
+    ASSERT_GT(first.getId(), 1u);
+
+    const auto path = tempDir / "hierarchy-duplicate-names.json";
+    ASSERT_NO_THROW(serializer.save(scene, path, *assets));
+    const auto saved = nlohmann::json::parse(ReadFile(path));
+    ASSERT_EQ(saved["entities"].size(), 2u);
+    EXPECT_EQ(saved["entities"][0]["name"], "Coin");
+    EXPECT_EQ(saved["entities"][1]["name"], "Coin");
+    EXPECT_FALSE(saved["entities"][0].contains("id"));
+    EXPECT_FALSE(saved["entities"][1].contains("id"));
+
+    auto reloaded = serializer.load(path, *assets);
+    ASSERT_EQ(reloaded->getEntities().size(), 2u);
+    EXPECT_EQ(reloaded->getEntities()[0]->getName(), "Coin");
+    EXPECT_EQ(reloaded->getEntities()[1]->getName(), "Coin");
+    EXPECT_EQ(reloaded->getEntities()[0]->getId(), 1u);
+    EXPECT_EQ(reloaded->getEntities()[1]->getId(), 2u);
+}
+
+TEST_F(SceneSerializerTest, LegacyNamelessEntitiesReceiveDistinctDefaultNames) {
+    const auto legacy = R"({
+        "version": 1,
+        "name": "Legacy",
+        "entities": [
+            {"transform": {"x":0,"y":0,"width":16,"height":16}},
+            {"transform": {"x":24,"y":0,"width":16,"height":16}}
+        ]
+    })";
+    auto loaded = serializer.load(WriteFile("legacy-hierarchy.json", legacy), *assets);
+    ASSERT_EQ(loaded->getEntities().size(), 2u);
+    EXPECT_EQ(loaded->getEntities()[0]->getName(), "Entity 1");
+    EXPECT_EQ(loaded->getEntities()[1]->getName(), "Entity 2");
+
+    loaded->getEntities()[0]->setName("Renamed");
+    const auto savedPath = tempDir / "renamed-legacy.json";
+    serializer.save(*loaded, savedPath, *assets);
+    auto reloaded = serializer.load(savedPath, *assets);
+    ASSERT_EQ(reloaded->getEntities().size(), 2u);
+    EXPECT_EQ(reloaded->getEntities()[0]->getName(), "Renamed");
+    EXPECT_EQ(reloaded->getEntities()[1]->getName(), "Entity 2");
+}
+
 } // namespace
