@@ -15,17 +15,6 @@
 #include <string>
 #include <vector>
 
-std::unique_ptr<Scene> createGameScene(AssetManager& assetManager) {
-    
-    std::filesystem::path assetRoot = getAssetRootPath();
-
-    std::filesystem::path demoPath = assetRoot / "scenes/phase3-demo.json";
-
-    SceneSerializer sceneSerializer;
-
-    return sceneSerializer.load(demoPath, assetManager);
-
-}
 
 bool handleCollisions(const std::vector<ColliderSystem::CollisionPair>& collisionPairs, Scene& scene, bool& wasOverlapping) {
     const auto& entities = scene.getEntities();

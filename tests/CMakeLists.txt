@@ -23,6 +23,7 @@ add_executable(engine_tests
     ../src/platform/logger.cpp
     ../src/core/engine.cpp
     ../src/core/game.cpp
+    ../src/core/project_config.cpp
     ../src/ecs/component.cpp
     ../src/ecs/entity.cpp
     ../src/ecs/sprite_component.cpp
@@ -33,6 +34,7 @@ add_executable(engine_tests
     ../src/scene/scene.cpp
     ../src/scene/scene_manager.cpp
     ../src/scene/scene_serializer.cpp
+    ../src/scene/scene_path.cpp
     ../src/assets/asset_manager.cpp
 )
 
@@ -93,6 +95,7 @@ if(ENGINE_EDITOR)
         ../src/scene/scene.cpp
         ../src/scene/scene_manager.cpp
         ../src/scene/scene_serializer.cpp
+        ../src/scene/scene_path.cpp
         ../src/assets/asset_manager.cpp
         ../src/rendering/renderer.cpp
     )

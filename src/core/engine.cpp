@@ -9,6 +9,8 @@
 #include "platform.h"
 #include "scene_manager.h"
 #include "scene_serializer.h"
+#include "project_config.h"
+#include "scene_path.h"
 
 #ifdef ENGINE_EDITOR
 #include "asset_manager.h"
@@ -117,6 +119,7 @@ void engine() {
 
         {
             // Keep all engine systems alive until the main loop finishes.
+            const std::filesystem::path assetRoot = getAssetRootPath();
             AudioService audioService(getAssetRootPath());
             EventDispatcher eventDispatcher;
             ColliderSystem colliderSystem;
@@ -132,15 +135,21 @@ void engine() {
                 getAssetRootPath() / "scenes/phase3-demo-saved.json";
 #endif
 
+
             // Load the trigger sound and initial scene exactly once.
+
+
             const auto testSoundId = audioService.loadWav("audio/test.wav");
-            sceneManager.setActiveScene(
-                createGameScene(getPlatformAssetManager())
-            );
+
+            ProjectConfig projectConfig = loadProjectConfig(assetRoot);
+            std::unique_ptr<Scene> loadedScene = sceneSerializer.load(resolveScenePath(assetRoot, projectConfig.startupScene.generic_string()), getPlatformAssetManager());
+
+            sceneManager.setActiveScene(std::move(loadedScene));
+
 
 #ifdef ENGINE_EDITOR
             editorState.onSceneReplaced();
-            editorState.setCurrentScenePath("scenes/phase3-demo.json");
+            editorState.setCurrentScenePath(projectConfig.startupScene.generic_string());
             editorState.clearDirty();
 #endif
 
