@@ -8,7 +8,7 @@
                 "offsetY": 0.0,
                 "width": 50.0
             },
-            "name": "Entity 2",
+            "name": "Player Trigger",
             "sprite": {
                 "texture": "test.bmp"
             },
@@ -57,15 +57,15 @@
                 "offsetY": 0.0,
                 "width": 32.0
             },
-            "name": "Entity 3",
+            "name": "Player",
             "sprite": {
                 "texture": "anim_sheet.bmp"
             },
             "transform": {
                 "height": 32.0,
                 "width": 32.0,
-                "x": 326.6131896972656,
-                "y": 299.9927978515625
+                "x": 566.525390625,
+                "y": 146.7327423095703
             }
         },
         {

@@ -52,10 +52,6 @@ EditResult applyColliderEdit(Entity& entity, float offsetX, float offsetY, float
 
 EditResult applySpriteEdit(Entity& entity, AssetManager& assetManager, const std::string& relativePath);
 
-std::filesystem::path normalizeScenePath(const std::string& relativePath);
-
-std::filesystem::path resolveScenePath(const std::filesystem::path& assetRoot, const std::string& relativePath);
-
 SceneFileResult openScene(SceneManager& sceneManager, SceneSerializer& sceneSerializer, AssetManager& assetManager, EditorState& editorState, const std::filesystem::path& assetRoot, const std::string& relativePath);
 
 SceneFileResult saveSceneAs(SceneManager& sceneManager, SceneSerializer& sceneSerializer, const AssetManager& assetManager, EditorState& editorState, const std::filesystem::path& assetRoot, const std::string& relativePath);

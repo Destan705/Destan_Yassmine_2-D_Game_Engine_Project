@@ -3,12 +3,14 @@
 #include "audio_service.h"
 #include "collider_system.h"
 #include "event_dispatcher.h"
-#include "game.h"
+#include "game_app.h"
 #include "input.h"
 #include "logger.h"
 #include "platform.h"
 #include "scene_manager.h"
 #include "scene_serializer.h"
+#include "project_config.h"
+#include "scene_path.h"
 
 #ifdef ENGINE_EDITOR
 #include "asset_manager.h"
@@ -104,6 +106,11 @@ bool processSceneFileCommand(
 #endif
 
 void engine() {
+    GameApp gameApp;
+    engine(gameApp);
+}
+
+void engine(GameApp& gameApp) {
     bool running = initializePlatform();
 
     if (!running) {
@@ -117,7 +124,8 @@ void engine() {
 
         {
             // Keep all engine systems alive until the main loop finishes.
-            AudioService audioService(getAssetRootPath());
+            const std::filesystem::path assetRoot = getAssetRootPath();
+            AudioService audioService(assetRoot);
             EventDispatcher eventDispatcher;
             ColliderSystem colliderSystem;
             SceneManager sceneManager(eventDispatcher);
@@ -127,25 +135,39 @@ void engine() {
             EditorState editorState;
             EngineStats engineStats;
             bool hasPreviousFrame = false;
-#else
-            const std::filesystem::path savedScenePath =
-                getAssetRootPath() / "scenes/phase3-demo-saved.json";
 #endif
 
-            // Load the trigger sound and initial scene exactly once.
-            const auto testSoundId = audioService.loadWav("audio/test.wav");
-            sceneManager.setActiveScene(
-                createGameScene(getPlatformAssetManager())
-            );
+
+            // Load the initial scene exactly once
+
+            ProjectConfig projectConfig = loadProjectConfig(assetRoot);
+
+            std::unique_ptr<Scene> loadedScene = sceneSerializer.load(resolveScenePath(assetRoot, projectConfig.startupScene.generic_string()), getPlatformAssetManager());
+
+            sceneManager.setActiveScene(std::move(loadedScene));
+
+#ifndef ENGINE_EDITOR
+            const std::filesystem::path parentPath = projectConfig.startupScene.parent_path();
+            const std::string stem = projectConfig.startupScene.stem().string();
+            const std::string extension = projectConfig.startupScene.extension().string();
+
+            const std::filesystem::path relativeSavedScenePath = parentPath / (stem + "-saved" + extension);
+
+            const std::filesystem::path savedScenePath = resolveScenePath(assetRoot, relativeSavedScenePath.generic_string());
+#endif
+
 
 #ifdef ENGINE_EDITOR
             editorState.onSceneReplaced();
-            editorState.setCurrentScenePath("scenes/phase3-demo.json");
+            editorState.setCurrentScenePath(projectConfig.startupScene);
             editorState.clearDirty();
 #endif
-
+            gameApp.onStart(audioService);
+            
             sceneManager.update(0.0f);
-            bool wasOverlapping = false;
+
+            gameApp.onSceneChanged(sceneManager.getActiveScene(), projectConfig.startupScene);
+
             auto prevTime = std::chrono::steady_clock::now();
 
             while (running) {
@@ -188,7 +210,7 @@ void engine() {
 
                 // 3. Run game simulation only when unpaused.
                 if (simulate) {
-                    updatePlayerMovement(sceneManager.getActiveScene(), deltaTime);
+                    gameApp.onUpdate(sceneManager.getActiveScene(), deltaTime);
                     sceneManager.update(deltaTime);
                 }
 
@@ -208,23 +230,12 @@ void engine() {
                 editorState.setCollisions(collisionPairs);
 #endif
 
-                // 6. Respond to newly entered trigger areas during simulation.
-                const bool justEntered = handleCollisions(
-                    collisionPairs, sceneManager.getActiveScene(), wasOverlapping
-                );
+                // 6. Notify the game of detected collisions
+                gameApp.onCollisions(collisionPairs, sceneManager.getActiveScene(), audioService, simulate);
 
-                if (justEntered && simulate) {
-                    logMessage(logger_level::Info, "Player entered trigger!");
-
-                    if (testSoundId != 0 && !audioService.play(testSoundId)) {
-                        logMessage(logger_level::Warning,
-                                   "Failed to play trigger sound");
-                    }
-                }
-
-                // 6b. Remove entities that gameplay asked to remove this frame.     
-                // Safe here: updates and collision checks are finished.              
-                sceneManager.getActiveScene().applyPendingRemovals();  
+                // 6b. Remove entities that gameplay asked to remove this frame.
+                // Safe here: updates and collision checks are finished.
+                sceneManager.getActiveScene().applyPendingRemovals();
 
 #ifdef ENGINE_EDITOR
                 // 7. Render the scene ONCE, with overlay, stats and ImGui.
@@ -259,17 +270,21 @@ void engine() {
 
                 if (processSceneFileCommand(
                         sceneFileCommand, sceneManager, sceneSerializer,
-                        getPlatformAssetManager(), editorState, getAssetRootPath())) {
+                        getPlatformAssetManager(), editorState, assetRoot)) {
                     break;
                 }
 
                 if (previousGeneration != editorState.getSceneGeneration()) {
-                    wasOverlapping = false;
+                    auto scenePath = editorState.getCurrentScenePath();
+                    if (scenePath.has_value()){
+                        gameApp.onSceneChanged(sceneManager.getActiveScene(), scenePath.value());
+                    }
                     editorState.setCollisions({});
                 }
 #else
                 // 7. Non-editor builds render the scene normally.
-                renderEngineFrame(sceneManager);
+                renderEngineFrame(sceneManager);    
+
 
                 // 8. Legacy F5/F9 scene shortcuts for non-editor builds.
                 if (wasKeyPressed(Key::F5)) {
@@ -297,7 +312,7 @@ void engine() {
                             );
                             sceneManager.setActiveScene(std::move(newScene));
                             sceneManager.update(0.0f);
-                            wasOverlapping = false;
+                             gameApp.onSceneChanged(sceneManager.getActiveScene(), relativeSavedScenePath);
                             logMessage(logger_level::Info,
                                        "Scene reloaded successfully!");
                         }

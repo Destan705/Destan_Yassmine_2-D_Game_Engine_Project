@@ -1,7 +1,8 @@
 add_executable(game_engine
     main.cpp
     core/engine.cpp
-    core/game.cpp
+    core/project_config.cpp
+    demo/phase3_demo_game.cpp
     platform/input.cpp
     platform/platform.cpp
     platform/logger.cpp
@@ -16,6 +17,7 @@ add_executable(game_engine
     scene/scene.cpp
     scene/scene_manager.cpp
     scene/scene_serializer.cpp
+    scene/scene_path.cpp
     assets/asset_manager.cpp
     audio/audio_service.cpp
     gameplay/behavior_registry.cpp
