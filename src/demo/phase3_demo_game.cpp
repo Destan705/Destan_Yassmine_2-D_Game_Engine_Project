@@ -1,60 +1,18 @@
 #include "phase3_demo_game.h"
-#include "transform_component.h"
 #include "entity.h"
 #include "scene.h"
-#include "input.h"
 #include "logger.h"
+#include "behavior_component.h"
+#include "keyboard_move.h"
+#include <memory>
 
 
 void Phase3DemoGame::onStart(AudioService& audioService) {
     testSoundId = audioService.loadWav("audio/test.wav");
     wasOverlapping = false;
-}
-
-void Phase3DemoGame::updatePlayerMovement(Scene& scene, float deltaTime) {
-    constexpr float playerSpeed = 200.0f; // Pixels per second
-
-    for (const auto& entity : scene.getEntities()) {
-        // Find the player (the Entity titled Player).
-
-        if (entity->getName() != "Player") {
-            continue;
-        }
-
-        TransformComponent* transformComponent = entity->getComponent<TransformComponent>();
-
-        if (transformComponent == nullptr) {
-            return;
-        }
-
-        float movement = playerSpeed * deltaTime;
-
-        // Left
-        if (isKeyHeld(Key::A)) {
-            transformComponent->x -= movement;
-        }
-
-        // Right
-        if (isKeyHeld(Key::D)) {
-            transformComponent->x += movement;
-        }
-
-        // Up
-        if (isKeyHeld(Key::W)) {
-            transformComponent->y -= movement;
-        }
-
-        // Down
-        if (isKeyHeld(Key::S)) {
-            transformComponent->y += movement;
-        }
-
-        break;
-    }
-}
-
-void Phase3DemoGame::onUpdate(Scene& scene, float deltaTime) {
-    updatePlayerMovement(scene, deltaTime);
+    behaviors.registerBehavior("KeyboardMove", [] {
+    return std::make_unique<KeyboardMove>(200.0f);
+});
 }
 
 bool Phase3DemoGame::handleCollisions(const std::vector<ColliderSystem::CollisionPair>& collisionPairs, Scene& scene) {
@@ -111,6 +69,19 @@ void Phase3DemoGame::onCollisions(const std::vector<ColliderSystem::CollisionPai
     }
 }
 
-void Phase3DemoGame::onSceneChanged(Scene&, const std::filesystem::path&) {
+void Phase3DemoGame::onSceneChanged(Scene& scene, const std::filesystem::path&) {
     wasOverlapping = false;
+    for(auto& entity:scene.getEntities()){
+        if(entity->getName() != "Player"){
+            continue;
+        }
+        auto* behavior = entity->getComponent<BehaviorComponent>();
+        if(behavior!=nullptr){
+            return;
+        }
+        auto& behaviorComponent = entity->addComponent<BehaviorComponent>();
+        behaviorComponent.addBehavior("KeyboardMove", behaviors.create("KeyboardMove"));
+        return;
+    }
+
 }
