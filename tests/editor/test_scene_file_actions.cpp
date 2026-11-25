@@ -3,6 +3,7 @@
 // (Save, Discard, Cancel, and asking for a path for an untitled scene).
 #include "editor_actions.h"
 #include "editor_state.h"
+#include "scene_path.h"
 #include "event_dispatcher.h"
 #include "scene.h"
 #include "scene_manager.h"
