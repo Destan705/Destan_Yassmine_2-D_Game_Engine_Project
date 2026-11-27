@@ -8,17 +8,28 @@
 class Scene {
   public:
     explicit Scene(std::string name);
+    
     std::string getSceneName() const; // gives the name back when askes
+
     Entity& createEntity(); // makes new entity stores, gives it the next ID, stores it, and hands
                             // it back so you can add components.
+                            
     void update(float dt);  // tells every entity to update, in order they were made
+
     void render(Renderer&); // tells every entity to draw, in the same order
+
     const std::vector<std::unique_ptr<Entity>>& getEntities() const;
+
     bool removeEntity(std::uint64_t id);// Removes the entity with this ID. Returns false if no entity has it.
+
     // Asks to remove an entity at the end of the frame (safe during updates).
     void requestRemove(std::uint64_t id);
+
     // Removes every requested entity. Call only when nothing is looping over entities.
     void applyPendingRemovals();
+
+    // 	Retrieve an entity by its ID
+    Entity* findEntity(std::uint64_t id);
 
   private:
     std::string sceneName;                         // names of the scenes

@@ -3,6 +3,7 @@ add_executable(game_engine
     core/engine.cpp
     core/project_config.cpp
     demo/phase3_demo_game.cpp
+    demo/trigger_sound.cpp
     platform/input.cpp
     platform/platform.cpp
     platform/logger.cpp
@@ -21,10 +22,8 @@ add_executable(game_engine
     assets/asset_manager.cpp
     audio/audio_service.cpp
     gameplay/behavior_registry.cpp
-    gameplay/behavior_registry.cpp
     gameplay/behavior_component.cpp
-    gameplay/behavior_registry.cpp
-    gameplay/behavior_component.cpp
+    gameplay/collision_events.cpp
     gameplay/keyboard_move.cpp
 )
 

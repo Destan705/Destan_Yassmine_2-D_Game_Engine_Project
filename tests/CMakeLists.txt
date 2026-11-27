@@ -35,6 +35,8 @@ add_executable(engine_tests
     ../src/scene/scene_serializer.cpp
     ../src/scene/scene_path.cpp
     ../src/assets/asset_manager.cpp
+    ../src/gameplay/collision_events.cpp
+    ../src/gameplay/behavior_component.cpp
 )
 
 target_link_libraries(engine_tests PRIVATE

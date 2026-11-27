@@ -1,4 +1,5 @@
 #include "scene.h"
+#include <algorithm>
 
 Scene::Scene(std::string name) {
     sceneName = name;
@@ -54,7 +55,16 @@ bool Scene::removeEntity(std::uint64_t id) {
         }
         pendingRemovals.clear();
 
-        std::erase_if(entities, [](const std::unique_ptr<Entity>& entity) {
+        entities.erase(std::remove_if(entities.begin(), entities.end(), [](const std::unique_ptr<Entity>& entity) {
             return entity->isRemovalRequested();
-        });
+        }), entities.end());
     }
+
+Entity* Scene::findEntity(std::uint64_t id) {
+    for (const auto &entity: entities){
+        if (entity->getId() == id){
+            return entity.get();
+        }
+    }
+    return nullptr;
+}

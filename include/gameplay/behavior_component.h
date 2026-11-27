@@ -27,6 +27,8 @@ public:
     // Order: entities in creation order, then behaviors in the order they were added.
     void update(float dt) override;
 
+    void onCollision(const CollisionEvent& event);
+
 private:
     struct Entry {
         std::string name;

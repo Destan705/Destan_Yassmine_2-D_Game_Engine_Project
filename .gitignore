@@ -1,6 +1,7 @@
 build/
 CMakeFiles/
 build-mingw/
+build-standalone/
 imgui.ini
 build-editor/
 .DS_Store

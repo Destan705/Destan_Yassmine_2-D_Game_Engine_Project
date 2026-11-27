@@ -66,3 +66,11 @@ void BehaviorComponent::update(float dt) {
     entry.behavior->update(dt);
     }
 }
+
+void BehaviorComponent::onCollision(const CollisionEvent& event) {
+    for (const auto &entry : entries){
+        if (entry.started){
+            entry.behavior->onCollision(event);
+        }
+    }
+}

@@ -2,6 +2,7 @@
 
 #include "audio_service.h"
 #include "collider_system.h"
+#include "collision_events.h"
 #include "event_dispatcher.h"
 #include "game_app.h"
 #include "input.h"
@@ -128,6 +129,7 @@ void engine(GameApp& gameApp) {
             AudioService audioService(assetRoot);
             EventDispatcher eventDispatcher;
             ColliderSystem colliderSystem;
+            CollisionEventSystem collisionEventSystem; 
             SceneManager sceneManager(eventDispatcher);
             SceneSerializer sceneSerializer;
 
@@ -145,6 +147,7 @@ void engine(GameApp& gameApp) {
             std::unique_ptr<Scene> loadedScene = sceneSerializer.load(resolveScenePath(assetRoot, projectConfig.startupScene.generic_string()), getPlatformAssetManager());
 
             sceneManager.setActiveScene(std::move(loadedScene));
+            collisionEventSystem.reset();
 
 #ifndef ENGINE_EDITOR
             const std::filesystem::path parentPath = projectConfig.startupScene.parent_path();
@@ -221,23 +224,24 @@ void engine(GameApp& gameApp) {
                     drawEditorPanels(sceneManager.getActiveScene(), editorState);
 #endif
 
-                // 5. Detect overlaps and update the editor's collision snapshot.
+                // 5. Detect overlaps and dispatch collision events
                 const auto collisionPairs = colliderSystem.detectCollisions(
                     sceneManager.getActiveScene()
                 );
+                if (simulate) {
+                    std::vector<CollisionEvent> collisionEvents = collisionEventSystem.update(collisionPairs);
+                    dispatchCollisionEvents(sceneManager.getActiveScene(), collisionEvents);
+                }
 
-#ifdef ENGINE_EDITOR
-                editorState.setCollisions(collisionPairs);
-#endif
-
-                // 6. Notify the game of detected collisions
-                gameApp.onCollisions(collisionPairs, sceneManager.getActiveScene(), audioService, simulate);
-
-                // 6b. Remove entities that gameplay asked to remove this frame.
+                // 6. Apply pending entity removals
                 // Safe here: updates and collision checks are finished.
                 sceneManager.getActiveScene().applyPendingRemovals();
+                
 
 #ifdef ENGINE_EDITOR
+                std::vector<ColliderSystem::CollisionPair> displayCollisionPairs = colliderSystem.detectCollisions(sceneManager.getActiveScene());
+                editorState.setCollisions(displayCollisionPairs);
+
                 // 7. Render the scene ONCE, with overlay, stats and ImGui.
                 StatsSnapshot stats;
                 stats.fps = engineStats.getFPS();
@@ -247,7 +251,7 @@ void engine(GameApp& gameApp) {
                 stats.validColliderCount = colliderSystem.getValidColliderCount(
                     sceneManager.getActiveScene()
                 );
-                stats.overlapPairCount = collisionPairs.size();
+                stats.overlapPairCount = displayCollisionPairs.size();
                 stats.cachedTextureCount =
                     getPlatformAssetManager().getCachedTextureCount();
 
@@ -275,6 +279,7 @@ void engine(GameApp& gameApp) {
                 }
 
                 if (previousGeneration != editorState.getSceneGeneration()) {
+                    collisionEventSystem.reset();
                     auto scenePath = editorState.getCurrentScenePath();
                     if (scenePath.has_value()){
                         gameApp.onSceneChanged(sceneManager.getActiveScene(), scenePath.value());
@@ -311,6 +316,7 @@ void engine(GameApp& gameApp) {
                                 savedScenePath, getPlatformAssetManager()
                             );
                             sceneManager.setActiveScene(std::move(newScene));
+                            collisionEventSystem.reset();
                             sceneManager.update(0.0f);
                              gameApp.onSceneChanged(sceneManager.getActiveScene(), relativeSavedScenePath);
                             logMessage(logger_level::Info,

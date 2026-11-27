@@ -1,18 +1,20 @@
 #pragma once
 
 class Entity;
+struct CollisionEvent;
 
 class Behavior{
-public:
-void setOwner(Entity* entity) { owner = entity; }
-Entity* getOwner() const { return owner; }
-virtual ~Behavior()= default;
+    public:
+        void setOwner(Entity* entity) { owner = entity; }
+        Entity* getOwner() const { return owner; }
+        virtual ~Behavior()= default;
 
-virtual void start(){}
-virtual void update(float dt){}
-virtual void cleanup(){}
+        virtual void start(){}
+        virtual void update(float dt){}
+        virtual void cleanup(){}
+        virtual void onCollision(const CollisionEvent& event) {}
 
-protected:
-Entity* owner = nullptr;
+    protected:
+        Entity* owner = nullptr;
 
 };
